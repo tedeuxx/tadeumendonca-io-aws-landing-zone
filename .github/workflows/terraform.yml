@@ -73,28 +73,40 @@ jobs:
         if: ${{ github.event.inputs.action != 'destroy'}}
         working-directory: terraform
         run: |
-          set -e
+          # Terraform plan with better error handling
+          if terraform plan -out=tfplan.out -compact-warnings -var-file=./env/main.tfvars | tee plan_output.log; then
+            echo "✅ Terraform plan succeeded"
+            
+            # Format sysout
+            sed -r "s:\x1B\[[0-9;]*[mK]::g" plan_output.log > plan_clean.log
 
-          # Terraform plan
-          terraform plan -out=tfplan.out -compact-warnings -var-file=./env/main.tfvars | tee plan_output.log
-
-          # Format sysout
-          sed -r "s:\x1B\[[0-9;]*[mK]::g" plan_output.log > plan_clean.log
-
-          # Parse sysout
-          if grep -Fq "No changes. Your infrastructure matches the configuration." plan_clean.log; then
-            echo "✅ Infra up-to-date: no changes"
-            echo "no_changes=true" >> "$GITHUB_OUTPUT"
+            # Parse sysout
+            if grep -Fq "No changes. Your infrastructure matches the configuration." plan_clean.log; then
+              echo "✅ Infra up-to-date: no changes"
+              echo "no_changes=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "🔧 Infra will change"
+              echo "no_changes=false" >> "$GITHUB_OUTPUT"
+            fi
           else
-            echo "🔧 Infra will change"
-            echo "no_changes=false" >> "$GITHUB_OUTPUT"
+            echo "❌ Terraform plan failed"
+            echo "Plan output:"
+            cat plan_output.log
+            exit 1
           fi
 
       - name: Terraform apply
         id: apply
         if: ${{ github.event.inputs.action != 'destroy' && steps.plan.outputs.no_changes == 'false'}}
         working-directory: terraform
-        run: terraform apply -auto-approve tfplan.out
+        run: |
+          if [ -f tfplan.out ]; then
+            echo "✅ Plan file exists, applying..."
+            terraform apply -auto-approve tfplan.out
+          else
+            echo "❌ Plan file not found - cannot apply"
+            exit 1
+          fi
         
       - name: Terraform destroy
         id: destroy
