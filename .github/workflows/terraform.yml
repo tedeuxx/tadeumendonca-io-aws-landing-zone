@@ -72,46 +72,54 @@ jobs:
         id: plan
         if: ${{ github.event.inputs.action != 'destroy'}}
         working-directory: terraform
+        continue-on-error: true
         run: |
-          # Terraform plan with better error handling
           echo "🔄 Running terraform plan..."
           
-          if terraform plan -out=tfplan.out -compact-warnings -var-file=./env/main.tfvars 2>&1 | tee plan_output.log; then
+          # Run terraform plan and capture both stdout and stderr
+          terraform plan -out=tfplan.out -compact-warnings -var-file=./env/main.tfvars > plan_output.log 2>&1
+          PLAN_EXIT_CODE=$?
+          
+          echo "📋 Terraform plan output:"
+          cat plan_output.log
+          
+          if [ $PLAN_EXIT_CODE -eq 0 ]; then
             echo "✅ Terraform plan succeeded"
             
             # Check if plan file is valid
             if terraform show tfplan.out > /dev/null 2>&1; then
               echo "✅ Plan file is valid"
               
-              # Format sysout
+              # Format sysout for parsing
               sed -r "s:\x1B\[[0-9;]*[mK]::g" plan_output.log > plan_clean.log
 
               # Parse sysout
               if grep -Fq "No changes. Your infrastructure matches the configuration." plan_clean.log; then
                 echo "✅ Infra up-to-date: no changes"
                 echo "no_changes=true" >> "$GITHUB_OUTPUT"
+                echo "plan_success=true" >> "$GITHUB_OUTPUT"
               else
                 echo "🔧 Infra will change"
                 echo "no_changes=false" >> "$GITHUB_OUTPUT"
+                echo "plan_success=true" >> "$GITHUB_OUTPUT"
               fi
             else
               echo "❌ Plan file is invalid or incomplete"
-              cat plan_output.log
+              echo "plan_success=false" >> "$GITHUB_OUTPUT"
               exit 1
             fi
           else
-            echo "❌ Terraform plan failed"
-            echo "Plan output:"
-            cat plan_output.log
+            echo "❌ Terraform plan failed with exit code: $PLAN_EXIT_CODE"
+            echo "plan_success=false" >> "$GITHUB_OUTPUT"
             exit 1
           fi
 
       - name: Terraform apply
         id: apply
-        if: ${{ github.event.inputs.action != 'destroy' && steps.plan.outputs.no_changes == 'false'}}
+        if: ${{ github.event.inputs.action != 'destroy' && steps.plan.outputs.plan_success == 'true' && steps.plan.outputs.no_changes == 'false'}}
         working-directory: terraform
         run: |
-          echo "🔄 Checking plan file..."
+          echo "🔄 Applying terraform plan..."
           if [ -f tfplan.out ]; then
             echo "✅ Plan file exists"
             
@@ -119,6 +127,7 @@ jobs:
             if terraform show tfplan.out > /dev/null 2>&1; then
               echo "✅ Plan file is valid, applying..."
               terraform apply -auto-approve tfplan.out
+              echo "✅ Terraform apply completed successfully"
             else
               echo "❌ Plan file is invalid or incomplete - cannot apply"
               echo "This usually means the plan step encountered errors."
@@ -134,3 +143,29 @@ jobs:
         if: ${{ github.event.inputs.action == 'destroy' }}
         working-directory: terraform
         run: terraform destroy -auto-approve -var-file=./env/main.tfvars
+
+      - name: Workflow Summary
+        if: always()
+        run: |
+          echo "## 📋 Terraform Workflow Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.plan.outputs.plan_success }}" == "true" ]; then
+            echo "✅ **Terraform Plan**: Succeeded" >> $GITHUB_STEP_SUMMARY
+            if [ "${{ steps.plan.outputs.no_changes }}" == "true" ]; then
+              echo "ℹ️ **Changes**: No changes detected" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "🔧 **Changes**: Infrastructure changes planned" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "❌ **Terraform Plan**: Failed" >> $GITHUB_STEP_SUMMARY
+            echo "🔍 Check the plan step output for detailed error information" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ steps.apply.outcome }}" == "success" ]; then
+            echo "✅ **Terraform Apply**: Succeeded" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ steps.apply.outcome }}" == "failure" ]; then
+            echo "❌ **Terraform Apply**: Failed" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ steps.apply.outcome }}" == "skipped" ]; then
+            echo "⏭️ **Terraform Apply**: Skipped (no changes or plan failed)" >> $GITHUB_STEP_SUMMARY
+          fi
