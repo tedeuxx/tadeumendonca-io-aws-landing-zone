@@ -4,7 +4,9 @@
 
 This design document outlines a comprehensive, cloud-native web application hosting infrastructure for a one-man digital startup. The solution leverages AWS services in a multi-region architecture with sa-east-1 as the primary region and us-east-1 for global services. The infrastructure provides a modern Kubernetes platform with service mesh capabilities, GitOps deployment workflows, and comprehensive observability.
 
-The architecture follows cloud-native best practices with Infrastructure as Code (Terraform), containerized workloads (EKS), service mesh (Istio), GitOps (ArgoCD), and a complete observability stack (Prometheus, Grafana, Kiali). This design enables rapid application development and deployment while maintaining enterprise-grade security, reliability, and cost optimization.
+The architecture follows cloud-native best practices with Infrastructure as Code (Terraform using official AWS community modules), containerized workloads (EKS), service mesh (Istio), GitOps (ArgoCD), and a complete observability stack (Prometheus, Grafana, Kiali). This design enables rapid application development and deployment while maintaining enterprise-grade security, reliability, and cost optimization.
+
+**Module Strategy:** The infrastructure leverages proven, community-maintained Terraform modules from the terraform-aws-modules organization to ensure best practices, reduce maintenance overhead, and benefit from community contributions and security updates.
 
 ## Architecture
 
@@ -99,11 +101,17 @@ graph TB
 
 ### 1. Network Infrastructure
 
-**VPC Configuration:**
+**VPC Configuration (using terraform-aws-modules/vpc/aws):**
 - CIDR: 10.0.0.0/16
 - Public subnets: 10.0.1.0/24, 10.0.2.0/24 (across 2 AZs)
 - Private subnets: 10.0.10.0/24, 10.0.20.0/24 (across 2 AZs)
 - Database subnets: 10.0.100.0/24, 10.0.200.0/24 (across 2 AZs)
+
+**Module Benefits:**
+- Proven subnet calculations and CIDR management
+- Automatic NAT Gateway and Internet Gateway configuration
+- Built-in database subnet group creation
+- Comprehensive tagging and naming conventions
 
 **Security Groups:**
 - EKS Control Plane SG: Allows API access from worker nodes
@@ -113,7 +121,7 @@ graph TB
 
 **Routing:**
 - Public subnets route to Internet Gateway
-- Private subnets route to NAT Gateway for outbound access
+- Private subnets route to NAT Gateway for outbound access (one per AZ for HA)
 - Database subnets isolated with no internet access
 
 ### 2. EKS Cluster Configuration
@@ -218,11 +226,19 @@ graph TB
 - Caching policies optimized for web applications
 - Compression enabled for bandwidth optimization
 
-**S3 Configuration:**
-- Separate buckets for static assets and application data
+**S3 Configuration (using terraform-aws-modules/s3-bucket/aws):**
+- **Assets Bucket**: Static assets with intelligent tiering
+- **Backups Bucket**: Application backups with lifecycle policies
 - Versioning enabled for data protection
-- Intelligent tiering for cost optimization
 - Server-side encryption with AWS managed keys
+- Intelligent tiering for automatic cost optimization
+- Lifecycle rules for backup retention (30d → IA, 90d → Glacier, 365d → Delete)
+
+**Module Benefits:**
+- Comprehensive security configurations (block public access)
+- Built-in encryption and versioning management
+- Lifecycle policy templates for cost optimization
+- Consistent naming and tagging
 
 ### 8. Load Balancing
 

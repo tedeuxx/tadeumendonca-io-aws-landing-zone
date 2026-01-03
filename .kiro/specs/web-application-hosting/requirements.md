@@ -153,7 +153,7 @@ This specification defines the infrastructure requirements for hosting web appli
 2. THE GitOps_Service SHALL automatically sync application deployments when Git repositories are updated
 3. THE GitOps_Service SHALL support rollback of failed deployments through Git history
 4. THE GitOps_Service SHALL provide a web UI for monitoring deployment status and history
-5. THE Web_Application_Infrastructure SHALL support Infrastructure as Code using Terraform
+5. THE Web_Application_Infrastructure SHALL support Infrastructure as Code using Terraform with official AWS community modules
 6. THE GitOps_Service SHALL integrate with Service_Mesh for progressive delivery strategies
 7. THE GitOps_Service SHALL support canary deployments with automatic traffic shifting based on success metrics
 8. THE GitOps_Service SHALL support blue-green deployments with instant traffic switching capabilities
@@ -162,3 +162,17 @@ This specification defines the infrastructure requirements for hosting web appli
 11. THE GitOps_Service SHALL provide notifications for deployment events and failures
 12. THE GitOps_Service SHALL integrate with Observability_Stack to monitor deployment health and automatically rollback on failure
 13. THE GitOps_Service SHALL support Argo Rollouts for advanced deployment strategies with analysis and promotion
+
+### Requirement 11: Infrastructure Module Standards
+
+**User Story:** As a startup founder, I want to use proven, community-maintained infrastructure modules, so that I can leverage best practices and reduce maintenance overhead.
+
+#### Acceptance Criteria
+
+1. THE Web_Application_Infrastructure SHALL use official AWS community Terraform modules where available
+2. THE Web_Application_Infrastructure SHALL use terraform-aws-modules/vpc/aws for VPC and networking components
+3. THE Web_Application_Infrastructure SHALL use terraform-aws-modules/s3-bucket/aws for S3 bucket configurations
+4. THE Web_Application_Infrastructure SHALL use terraform-aws-modules/eks/aws for EKS cluster deployment
+5. THE Web_Application_Infrastructure SHALL use terraform-aws-modules/rds/aws for database infrastructure
+6. THE Web_Application_Infrastructure SHALL use terraform-aws-modules/alb/aws for load balancer configuration
+7. WHEN official community modules are not available, THE Web_Application_Infrastructure SHALL implement custom modules following Terraform best practices
