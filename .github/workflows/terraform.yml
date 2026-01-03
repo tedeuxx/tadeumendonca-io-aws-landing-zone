@@ -126,8 +126,24 @@ jobs:
             # Validate plan file before applying
             if terraform show tfplan.out > /dev/null 2>&1; then
               echo "✅ Plan file is valid, applying..."
-              terraform apply -auto-approve tfplan.out
-              echo "✅ Terraform apply completed successfully"
+              echo "📋 Terraform apply output:"
+              
+              # Run terraform apply and capture output
+              terraform apply -auto-approve tfplan.out 2>&1 | tee apply_output.log
+              APPLY_EXIT_CODE=$?
+              
+              if [ $APPLY_EXIT_CODE -eq 0 ]; then
+                echo ""
+                echo "✅ Terraform apply completed successfully!"
+                echo "📊 Apply summary:"
+                tail -20 apply_output.log | grep -E "(Apply complete|created|modified|destroyed)"
+              else
+                echo ""
+                echo "❌ Terraform apply failed with exit code: $APPLY_EXIT_CODE"
+                echo "📋 Last 50 lines of apply output:"
+                tail -50 apply_output.log
+                exit 1
+              fi
             else
               echo "❌ Plan file is invalid or incomplete - cannot apply"
               echo "This usually means the plan step encountered errors."
@@ -138,6 +154,22 @@ jobs:
             exit 1
           fi
         
+      - name: Show Terraform Outputs
+        id: outputs
+        if: ${{ steps.apply.outcome == 'success' }}
+        working-directory: terraform
+        run: |
+          echo "📊 Terraform Outputs:"
+          terraform output -json | jq -r 'to_entries[] | "\(.key): \(.value.value)"'
+          
+          echo ""
+          echo "📋 Infrastructure Summary:"
+          echo "✅ VPC ID: $(terraform output -raw vpc_id 2>/dev/null || echo 'Not available')"
+          echo "✅ Public Subnets: $(terraform output -json public_subnets 2>/dev/null | jq -r '. | length') subnets"
+          echo "✅ Private Subnets: $(terraform output -json private_subnets 2>/dev/null | jq -r '. | length') subnets"
+          echo "✅ S3 Assets Bucket: $(terraform output -raw assets_bucket_id 2>/dev/null || echo 'Not available')"
+          echo "✅ S3 Backups Bucket: $(terraform output -raw backups_bucket_id 2>/dev/null || echo 'Not available')"
+
       - name: Terraform destroy
         id: destroy
         if: ${{ github.event.inputs.action == 'destroy' }}
