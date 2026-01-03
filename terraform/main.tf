@@ -4,21 +4,21 @@
 
 # VPC Module using official AWS community module
 module "vpc" {
-  source = "terraform-aws-modules/vpc/aws"
+  source  = "terraform-aws-modules/vpc/aws"
   version = "~> 5.0"
 
   name = "${local.customer_workload_name}-vpc"
   cidr = "10.0.0.0/16"
 
-  azs             = slice(local.aws_availability_zones, 0, 2) # Use first 2 AZs
-  public_subnets  = ["10.0.1.0/24", "10.0.2.0/24"]
-  private_subnets = ["10.0.10.0/24", "10.0.20.0/24"]
+  azs              = slice(local.aws_availability_zones, 0, 2) # Use first 2 AZs
+  public_subnets   = ["10.0.1.0/24", "10.0.2.0/24"]
+  private_subnets  = ["10.0.10.0/24", "10.0.20.0/24"]
   database_subnets = ["10.0.100.0/24", "10.0.200.0/24"]
 
   # Enable NAT Gateway for private subnets
-  enable_nat_gateway = true
-  enable_vpn_gateway = false
-  single_nat_gateway = false # Use one NAT gateway per AZ for HA
+  enable_nat_gateway     = true
+  enable_vpn_gateway     = false
+  single_nat_gateway     = false # Use one NAT gateway per AZ for HA
   one_nat_gateway_per_az = true
 
   # Enable DNS
@@ -31,17 +31,17 @@ module "vpc" {
 
   # Tags
   tags = {
-    Name = "${local.customer_workload_name}-vpc"
+    Name        = "${local.customer_workload_name}-vpc"
     Environment = var.customer_workload_environment
   }
 
   public_subnet_tags = {
-    Type = "public"
+    Type                     = "public"
     "kubernetes.io/role/elb" = "1"
   }
 
   private_subnet_tags = {
-    Type = "private"
+    Type                              = "private"
     "kubernetes.io/role/internal-elb" = "1"
   }
 
@@ -52,7 +52,7 @@ module "vpc" {
 
 # S3 Buckets for application assets and backups
 module "assets_bucket" {
-  source = "terraform-aws-modules/s3-bucket/aws"
+  source  = "terraform-aws-modules/s3-bucket/aws"
   version = "~> 4.0"
 
   bucket = "${local.customer_workload_name}-assets-${random_id.bucket_suffix.hex}"
@@ -85,9 +85,9 @@ module "assets_bucket" {
   restrict_public_buckets = true
 
   tags = {
-    Name = "${local.customer_workload_name}-assets"
+    Name        = "${local.customer_workload_name}-assets"
     Environment = var.customer_workload_environment
-    Purpose = "application-assets"
+    Purpose     = "application-assets"
   }
 }
 
@@ -124,7 +124,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "assets_bucket_lifecycle" {
 }
 
 module "backups_bucket" {
-  source = "terraform-aws-modules/s3-bucket/aws"
+  source  = "terraform-aws-modules/s3-bucket/aws"
   version = "~> 4.0"
 
   bucket = "${local.customer_workload_name}-backups-${random_id.bucket_suffix.hex}"
@@ -150,9 +150,9 @@ module "backups_bucket" {
   restrict_public_buckets = true
 
   tags = {
-    Name = "${local.customer_workload_name}-backups"
+    Name        = "${local.customer_workload_name}-backups"
     Environment = var.customer_workload_environment
-    Purpose = "application-backups"
+    Purpose     = "application-backups"
   }
 }
 
@@ -223,7 +223,7 @@ resource "aws_security_group" "eks_control_plane" {
   }
 
   tags = {
-    Name = "${local.customer_workload_name}-eks-control-plane-sg"
+    Name        = "${local.customer_workload_name}-eks-control-plane-sg"
     Environment = var.customer_workload_environment
   }
 }
@@ -235,10 +235,10 @@ resource "aws_security_group" "eks_worker_nodes" {
 
   # Allow communication between worker nodes
   ingress {
-    from_port = 0
-    to_port   = 65535
-    protocol  = "tcp"
-    self      = true
+    from_port   = 0
+    to_port     = 65535
+    protocol    = "tcp"
+    self        = true
     description = "Worker node communication"
   }
 
@@ -278,7 +278,7 @@ resource "aws_security_group" "eks_worker_nodes" {
   }
 
   tags = {
-    Name = "${local.customer_workload_name}-eks-worker-nodes-sg"
+    Name        = "${local.customer_workload_name}-eks-worker-nodes-sg"
     Environment = var.customer_workload_environment
   }
 }
@@ -316,7 +316,7 @@ resource "aws_security_group" "alb" {
   }
 
   tags = {
-    Name = "${local.customer_workload_name}-alb-sg"
+    Name        = "${local.customer_workload_name}-alb-sg"
     Environment = var.customer_workload_environment
   }
 }
@@ -338,7 +338,7 @@ resource "aws_security_group" "rds" {
   # No outbound rules needed for RDS
 
   tags = {
-    Name = "${local.customer_workload_name}-rds-sg"
+    Name        = "${local.customer_workload_name}-rds-sg"
     Environment = var.customer_workload_environment
   }
 }
