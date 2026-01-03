@@ -1,6 +1,8 @@
 # Configure the AWS Provider
 provider "aws" {
   region = var.aws_region
+  # Use profile only for local development, CI uses environment variables
+  profile = var.aws_profile != "" ? var.aws_profile : null
   default_tags {
     tags = {
       customer_workload_name        = var.customer_workload_name
