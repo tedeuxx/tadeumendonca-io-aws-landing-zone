@@ -71,13 +71,6 @@ module "assets_bucket" {
     }
   }
 
-  # Intelligent tiering for cost optimization
-  intelligent_tiering = {
-    general = {
-      status = "Enabled"
-    }
-  }
-
   # Block public access
   block_public_acls       = true
   block_public_policy     = true
@@ -120,6 +113,22 @@ resource "aws_s3_bucket_lifecycle_configuration" "assets_bucket_lifecycle" {
     noncurrent_version_expiration {
       noncurrent_days = 30
     }
+  }
+}
+
+# Separate intelligent tiering configuration for assets bucket
+resource "aws_s3_bucket_intelligent_tiering_configuration" "assets_bucket_tiering" {
+  bucket = module.assets_bucket.s3_bucket_id
+  name   = "EntireBucket"
+
+  tiering {
+    access_tier = "ARCHIVE_ACCESS"
+    days        = 90
+  }
+
+  tiering {
+    access_tier = "DEEP_ARCHIVE_ACCESS"
+    days        = 180
   }
 }
 
