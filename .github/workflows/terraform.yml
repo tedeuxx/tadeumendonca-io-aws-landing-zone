@@ -32,10 +32,11 @@ jobs:
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
       TF_IN_AUTOMATION: true
-      TF_CLOUD_ORGANIZATION: tadeumendonca-io
-      TF_WORKSPACE: aws-landing-zone-main
+      # Temporarily disabled Terraform Cloud while troubleshooting workspace setup
+      # TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
+      # TF_CLOUD_ORGANIZATION: tadeumendonca-io
+      # TF_WORKSPACE: aws-landing-zone-main
 
     steps:
       - name: Checkout code
@@ -46,12 +47,13 @@ jobs:
         with:
           terraform_version: 1.12.1
       
-      - name: Configure Terraform credentials
-        id: credentials
-        working-directory: terraform
-        run: |
-          mkdir -p ~/.terraform.d
-          echo '{"credentials":{"app.terraform.io":{"token":"${{ secrets.TERRAFORM_CLOUD_TOKEN }}"}}}' > ~/.terraform.d/credentials.tfrc.json
+      # Temporarily disabled Terraform Cloud credentials while troubleshooting
+      # - name: Configure Terraform credentials
+      #   id: credentials
+      #   working-directory: terraform
+      #   run: |
+      #     mkdir -p ~/.terraform.d
+      #     echo '{"credentials":{"app.terraform.io":{"token":"${{ secrets.TERRAFORM_CLOUD_TOKEN }}"}}}' > ~/.terraform.d/credentials.tfrc.json
 
       - name: Terraform fmt
         id: fmt
@@ -64,9 +66,8 @@ jobs:
         run: |
           # Clean any existing state/cache to ensure fresh start
           rm -rf .terraform .terraform.lock.hcl 2>/dev/null || true
-          # Initialize with Terraform Cloud backend
+          # Initialize with local backend (temporarily while troubleshooting Terraform Cloud)
           terraform init -input=false
-          # The local state will be automatically migrated to Terraform Cloud
 
       - name: Terraform validate
         id: validate

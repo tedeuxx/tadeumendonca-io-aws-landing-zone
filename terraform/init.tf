@@ -1,16 +1,17 @@
 terraform {
   required_version = ">= 1.0"
 
-  cloud {
-    organization = "tadeumendonca-io"
-    workspaces {
-      name = "aws-landing-zone-main"
-    }
+  # Temporarily back to local backend while troubleshooting Terraform Cloud
+  backend "local" {
+    path = "terraform.tfstate"
   }
 
-  # Previous local backend configuration (migrated to Terraform Cloud)
-  # backend "local" {
-  #   path = "terraform.tfstate"
+  # Terraform Cloud configuration (will re-enable once workspace is properly configured)
+  # cloud {
+  #   organization = "tadeumendonca-io"
+  #   workspaces {
+  #     name = "aws-landing-zone-main"
+  #   }
   # }
 
   required_providers {
