@@ -96,7 +96,7 @@ resource "aws_s3_bucket_public_access_block" "aft_account_requests_pab" {
 
 # IAM Role for AFT Account Provisioning
 resource "aws_iam_role" "aft_account_provisioning_role" {
-  name = "${local.customer_workload_name}-aft-account-provisioning-role"
+  name = "${local.customer_workload_name}-aft-account-provisioning-role-v2"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -115,7 +115,7 @@ resource "aws_iam_role" "aft_account_provisioning_role" {
   })
 
   tags = {
-    Name        = "${local.customer_workload_name}-aft-account-provisioning-role"
+    Name        = "${local.customer_workload_name}-aft-account-provisioning-role-v2"
     Environment = var.customer_workload_environment
     Purpose     = "aft-account-provisioning"
   }
@@ -123,7 +123,7 @@ resource "aws_iam_role" "aft_account_provisioning_role" {
 
 # IAM Policy for AFT Account Provisioning
 resource "aws_iam_role_policy" "aft_account_provisioning_policy" {
-  name = "${local.customer_workload_name}-aft-account-provisioning-policy"
+  name = "${local.customer_workload_name}-aft-account-provisioning-policy-v2"
   role = aws_iam_role.aft_account_provisioning_role.id
 
   policy = jsonencode({

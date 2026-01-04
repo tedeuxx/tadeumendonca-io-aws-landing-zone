@@ -27,7 +27,7 @@ module "vpc" {
 
   # Create database subnet group
   create_database_subnet_group = true
-  database_subnet_group_name   = "${local.customer_workload_name}-db-subnet-group"
+  database_subnet_group_name   = "${local.customer_workload_name}-db-subnet-group-v2"
 
   # Tags
   tags = {
