@@ -2,10 +2,6 @@
 # AWS ORGANIZATIONS FOUNDATION
 ############################
 
-# TODO: Temporarily disabled to isolate terraform plan issues
-# Will re-enable once basic infrastructure is working
-
-/*
 # AWS Organizations Module
 module "aws_organizations" {
   source = "../modules/aws-organizations"
@@ -32,32 +28,33 @@ module "aws_organizations" {
     }
   }
 
-  # Initial AWS Accounts
+  # Initial AWS Accounts - Temporarily disabled due to account limit issue
+  # Will be enabled after AWS Support removes closed accounts
   accounts = {
-    security = {
-      name          = "Security Account"
-      email         = "security@${local.customer_workload_name}"
-      parent_ou_key = "security"
-      tags = {
-        Purpose = "security-tooling"
-      }
-    }
-    log_archive = {
-      name          = "Log Archive Account"
-      email         = "log-archive@${local.customer_workload_name}"
-      parent_ou_key = "security"
-      tags = {
-        Purpose = "log-storage"
-      }
-    }
-    audit = {
-      name          = "Audit Account"
-      email         = "audit@${local.customer_workload_name}"
-      parent_ou_key = "security"
-      tags = {
-        Purpose = "compliance-auditing"
-      }
-    }
+    # security = {
+    #   name          = "Security Account"
+    #   email         = "security-new@${local.customer_workload_name}"
+    #   parent_ou_key = "security"
+    #   tags = {
+    #     Purpose = "security-tooling"
+    #   }
+    # }
+    # log_archive = {
+    #   name          = "Log Archive Account"
+    #   email         = "log-archive-new@${local.customer_workload_name}"
+    #   parent_ou_key = "security"
+    #   tags = {
+    #     Purpose = "log-storage"
+    #   }
+    # }
+    # audit = {
+    #   name          = "Audit Account"
+    #   email         = "audit-new@${local.customer_workload_name}"
+    #   parent_ou_key = "security"
+    #   tags = {
+    #     Purpose = "compliance-auditing"
+    #   }
+    # }
   }
 
   # Service Control Policies
@@ -147,7 +144,6 @@ module "aws_organizations" {
 
   depends_on = [aws_s3_bucket_policy.cloudtrail_bucket_policy]
 }
-*/
 
 # S3 Bucket for CloudTrail
 resource "aws_s3_bucket" "cloudtrail_bucket" {

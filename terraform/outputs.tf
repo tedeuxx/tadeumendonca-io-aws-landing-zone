@@ -16,9 +16,8 @@ output "aws_availability_zones" {
   value       = local.aws_availability_zones
 }
 
-/*
 ############################
-# AWS Organizations (Temporarily disabled)
+# AWS Organizations
 ############################
 output "organization_id" {
   description = "AWS Organization ID"
@@ -64,7 +63,6 @@ output "audit_account_id" {
   description = "Audit Account ID"
   value       = module.aws_organizations.accounts["audit"].id
 }
-*/
 
 output "cloudtrail_bucket_name" {
   description = "Organization CloudTrail S3 Bucket Name"
