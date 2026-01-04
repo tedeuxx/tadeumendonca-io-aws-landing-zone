@@ -14,7 +14,7 @@ data "aws_subnets" "existing_public" {
     name   = "vpc-id"
     values = [data.aws_vpc.existing.id]
   }
-  
+
   filter {
     name   = "map-public-ip-on-launch"
     values = ["true"]
@@ -26,7 +26,7 @@ data "aws_subnets" "existing_private" {
     name   = "vpc-id"
     values = [data.aws_vpc.existing.id]
   }
-  
+
   filter {
     name   = "map-public-ip-on-launch"
     values = ["false"]
@@ -36,10 +36,10 @@ data "aws_subnets" "existing_private" {
 # Create a local reference to mimic the VPC module structure
 locals {
   vpc_id                      = data.aws_vpc.existing.id
-  vpc_cidr_block             = data.aws_vpc.existing.cidr_block
-  public_subnets             = data.aws_subnets.existing_public.ids
-  private_subnets            = length(data.aws_subnets.existing_private.ids) > 0 ? data.aws_subnets.existing_private.ids : data.aws_subnets.existing_public.ids
-  database_subnets           = length(data.aws_subnets.existing_private.ids) > 0 ? data.aws_subnets.existing_private.ids : data.aws_subnets.existing_public.ids
+  vpc_cidr_block              = data.aws_vpc.existing.cidr_block
+  public_subnets              = data.aws_subnets.existing_public.ids
+  private_subnets             = length(data.aws_subnets.existing_private.ids) > 0 ? data.aws_subnets.existing_private.ids : data.aws_subnets.existing_public.ids
+  database_subnets            = length(data.aws_subnets.existing_private.ids) > 0 ? data.aws_subnets.existing_private.ids : data.aws_subnets.existing_public.ids
   private_subnets_cidr_blocks = [for subnet_id in local.private_subnets : data.aws_subnet.private[subnet_id].cidr_block]
 }
 
