@@ -5,7 +5,10 @@
 # AFT requires Control Tower to be enabled first
 # This will be deployed in the management account
 
-# AFT Management Infrastructure
+# AFT Management Infrastructure - TEMPORARILY DISABLED
+# TODO: Re-enable after resolving provider version conflicts with AWS provider >= 6.0.0
+# The AFT module requires AWS provider >= 6.0.0 which conflicts with our current ~> 5.0 constraint
+/*
 module "aft" {
   source = "github.com/aws-ia/terraform-aws-control_tower_account_factory"
 
@@ -51,6 +54,7 @@ module "aft" {
     Component   = "account-factory"
   }
 }
+*/
 
 # S3 Bucket for AFT Account Requests (if using S3 instead of GitHub)
 resource "aws_s3_bucket" "aft_account_requests" {
