@@ -120,8 +120,9 @@ output "sso_audit_bucket_name" {
   value       = aws_s3_bucket.sso_audit_bucket.bucket
 }
 
+/*
 ############################
-# EKS
+# EKS (Temporarily disabled)
 ############################
 output "cluster_endpoint" {
   description = "EKS cluster endpoint"
@@ -167,6 +168,7 @@ output "cluster_autoscaler_role_arn" {
   description = "Cluster Autoscaler IAM role ARN"
   value       = module.cluster_autoscaler_irsa_role.iam_role_arn
 }
+*/
 
 ############################
 # VPC
