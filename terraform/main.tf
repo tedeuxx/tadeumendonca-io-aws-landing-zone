@@ -251,8 +251,8 @@ resource "aws_security_group" "alb" {
   }
 }
 
-# Security group for RDS PostgreSQL (force recreation to break EKS dependency)
-resource "aws_security_group" "rds" {
+# Security group for RDS PostgreSQL (new resource to avoid state conflicts)
+resource "aws_security_group" "rds_new" {
   name_prefix = "${local.customer_workload_name}-rds-v2-"
   vpc_id      = module.vpc.vpc_id
   description = "Security group for RDS PostgreSQL (v2 - no EKS dependency)"
@@ -281,7 +281,7 @@ resource "aws_security_group" "rds" {
   # No outbound rules needed for RDS
 
   tags = {
-    Name        = "${local.customer_workload_name}-rds-sg"
+    Name        = "${local.customer_workload_name}-rds-v2-sg"
     Environment = var.customer_workload_environment
     Purpose     = "rds-database"
   }

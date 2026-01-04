@@ -82,8 +82,9 @@ output "aft_account_provisioning_role_arn" {
   value       = aws_iam_role.aft_account_provisioning_role.arn
 }
 
+/*
 ############################
-# SSO (Identity Center)
+# SSO (Identity Center) - Temporarily disabled
 ############################
 output "sso_instance_arn" {
   description = "AWS SSO Instance ARN"
@@ -119,6 +120,7 @@ output "sso_audit_bucket_name" {
   description = "SSO Audit S3 Bucket Name"
   value       = aws_s3_bucket.sso_audit_bucket.bucket
 }
+*/
 
 /*
 ############################
@@ -213,7 +215,7 @@ output "alb_security_group_id" {
 
 output "rds_security_group_id" {
   description = "RDS security group ID"
-  value       = aws_security_group.rds.id
+  value       = aws_security_group.rds_new.id
 }
 
 ############################
