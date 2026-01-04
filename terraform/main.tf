@@ -15,11 +15,11 @@ module "vpc" {
   private_subnets  = ["10.0.10.0/24", "10.0.20.0/24"]
   database_subnets = ["10.0.100.0/24", "10.0.200.0/24"]
 
-  # Enable NAT Gateway for private subnets
+  # Enable NAT Gateway for private subnets (use single NAT to avoid EIP limits)
   enable_nat_gateway     = true
   enable_vpn_gateway     = false
-  single_nat_gateway     = false # Use one NAT gateway per AZ for HA
-  one_nat_gateway_per_az = true
+  single_nat_gateway     = true  # Use single NAT gateway to avoid EIP limit issues
+  one_nat_gateway_per_az = false # Disabled to use single NAT gateway
 
   # Enable DNS
   enable_dns_hostnames = true
@@ -27,7 +27,7 @@ module "vpc" {
 
   # Create database subnet group
   create_database_subnet_group = true
-  database_subnet_group_name   = "${local.customer_workload_name}-db-subnet-group-v2"
+  database_subnet_group_name   = "${local.customer_workload_name}-db-${random_id.bucket_suffix.hex}"
 
   # Tags
   tags = {
