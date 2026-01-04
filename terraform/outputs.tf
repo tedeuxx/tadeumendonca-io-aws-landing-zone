@@ -85,13 +85,6 @@ output "aft_account_provisioning_role_arn" {
 ############################
 # SSO (Identity Center)
 ############################
-output "sso_status" {
-  description = "AWS SSO Status"
-  value       = "AWS SSO must be manually enabled in the console before deploying this configuration"
-}
-
-# TODO: Uncomment these outputs after enabling SSO and uncommenting SSO resources
-/*
 output "sso_instance_arn" {
   description = "AWS SSO Instance ARN"
   value       = local.sso_instance_arn
@@ -126,7 +119,6 @@ output "sso_audit_bucket_name" {
   description = "SSO Audit S3 Bucket Name"
   value       = aws_s3_bucket.sso_audit_bucket.bucket
 }
-*/
 
 ############################
 # VPC
