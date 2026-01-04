@@ -259,11 +259,11 @@ resource "aws_security_group" "rds" {
 
   # Allow PostgreSQL from EKS worker nodes only
   ingress {
-    from_port                = 5432
-    to_port                  = 5432
-    protocol                 = "tcp"
-    source_security_group_id = module.eks.node_security_group_id
-    description              = "PostgreSQL from EKS worker nodes"
+    from_port       = 5432
+    to_port         = 5432
+    protocol        = "tcp"
+    security_groups = [module.eks.node_security_group_id]
+    description     = "PostgreSQL from EKS worker nodes"
   }
 
   # No outbound rules needed for RDS
