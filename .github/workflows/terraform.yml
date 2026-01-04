@@ -182,7 +182,7 @@ jobs:
           echo ""
           echo "📋 Infrastructure Summary:"
           
-          # Use safer output retrieval with error handling
+          # Use safer output retrieval with error handling and descriptive messages
           VPC_ID=$(terraform output -raw vpc_id 2>/dev/null || echo 'Not available')
           echo "✅ VPC ID: $VPC_ID"
           
@@ -198,12 +198,20 @@ jobs:
           BACKUPS_BUCKET=$(terraform output -raw backups_bucket_id 2>/dev/null || echo 'Not available')
           echo "✅ S3 Backups Bucket: $BACKUPS_BUCKET"
           
-          # Show organization outputs if available
-          ORG_ID=$(terraform output -raw organization_id 2>/dev/null || echo 'Not available')
+          # Show organization outputs if available (handle missing outputs gracefully)
+          ORG_ID=$(terraform output -raw organization_id 2>/dev/null || echo 'Not deployed (Organizations module disabled)')
           echo "✅ Organization ID: $ORG_ID"
           
-          SECURITY_OU=$(terraform output -raw security_ou_id 2>/dev/null || echo 'Not available')
+          SECURITY_OU=$(terraform output -raw security_ou_id 2>/dev/null || echo 'Not deployed (Organizations module disabled)')
           echo "✅ Security OU ID: $SECURITY_OU"
+          
+          # Show EKS outputs if available
+          EKS_CLUSTER=$(terraform output -raw cluster_name 2>/dev/null || echo 'Not deployed (EKS module disabled)')
+          echo "✅ EKS Cluster: $EKS_CLUSTER"
+          
+          # Show CloudTrail bucket (should be available)
+          CLOUDTRAIL_BUCKET=$(terraform output -raw cloudtrail_bucket_name 2>/dev/null || echo 'Not available')
+          echo "✅ CloudTrail Bucket: $CLOUDTRAIL_BUCKET"
 
       - name: Terraform destroy
         id: destroy
