@@ -251,11 +251,11 @@ resource "aws_security_group" "alb" {
   }
 }
 
-# Security group for RDS PostgreSQL
+# Security group for RDS PostgreSQL (force recreation to break EKS dependency)
 resource "aws_security_group" "rds" {
-  name_prefix = "${local.customer_workload_name}-rds-"
+  name_prefix = "${local.customer_workload_name}-rds-v2-"
   vpc_id      = module.vpc.vpc_id
-  description = "Security group for RDS PostgreSQL"
+  description = "Security group for RDS PostgreSQL (v2 - no EKS dependency)"
 
   # Allow PostgreSQL from EKS worker nodes only (temporarily disabled)
   # TODO: Re-enable when EKS is deployed
