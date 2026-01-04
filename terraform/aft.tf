@@ -10,21 +10,21 @@ module "aft" {
   source = "github.com/aws-ia/terraform-aws-control_tower_account_factory"
 
   # AFT Configuration
-  ct_management_account_id    = local.aws_account_id
-  log_archive_account_id      = module.aws_organizations.accounts["log_archive"].id
-  audit_account_id           = module.aws_organizations.accounts["audit"].id
-  aft_management_account_id  = local.aws_account_id # Using management account for AFT
-  
+  ct_management_account_id  = local.aws_account_id
+  log_archive_account_id    = module.aws_organizations.accounts["log_archive"].id
+  audit_account_id          = module.aws_organizations.accounts["audit"].id
+  aft_management_account_id = local.aws_account_id # Using management account for AFT
+
   # GitHub Integration for Account Requests
-  vcs_provider                         = "github"
-  account_request_repo_name           = "${var.customer_workload_owner}/aft-account-request"
-  global_customizations_repo_name     = "${var.customer_workload_owner}/aft-global-customizations"
-  account_customizations_repo_name    = "${var.customer_workload_owner}/aft-account-customizations"
+  vcs_provider                                  = "github"
+  account_request_repo_name                     = "${var.customer_workload_owner}/aft-account-request"
+  global_customizations_repo_name               = "${var.customer_workload_owner}/aft-global-customizations"
+  account_customizations_repo_name              = "${var.customer_workload_owner}/aft-account-customizations"
   account_provisioning_customizations_repo_name = "${var.customer_workload_owner}/aft-account-provisioning-customizations"
 
   # AFT Backend Configuration
   aft_backend_bucket_name = "${local.customer_workload_name}-aft-backend-${random_id.bucket_suffix.hex}"
-  
+
   # Terraform Distribution
   terraform_version      = "1.5.7"
   terraform_distribution = "oss"
@@ -34,12 +34,12 @@ module "aft" {
 
   # AFT Feature Flags
   aft_enable_vpc = true
-  
+
   # Maximum concurrent account customizations
   maximum_concurrent_customizations = 5
 
   # AFT VPC Configuration
-  aft_vpc_cidr       = "192.168.0.0/22"
+  aft_vpc_cidr            = "192.168.0.0/22"
   aft_vpc_private_subnets = ["192.168.0.0/24", "192.168.1.0/24"]
   aft_vpc_public_subnets  = ["192.168.2.0/24", "192.168.3.0/24"]
 
