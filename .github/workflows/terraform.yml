@@ -62,7 +62,10 @@ jobs:
       - name: Terraform init
         id: init
         working-directory: terraform
-        run: terraform init -input=false
+        run: |
+          # Clean any existing state/cache to ensure fresh start
+          rm -rf .terraform .terraform.lock.hcl terraform.tfstate* 2>/dev/null || true
+          terraform init -input=false
 
       - name: Terraform validate
         id: validate
