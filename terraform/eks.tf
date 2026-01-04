@@ -60,10 +60,6 @@ module "eks" {
         max_unavailable_percentage = 25
       }
 
-      # Launch template configuration
-      create_launch_template = false
-      launch_template_name   = ""
-
       tags = {
         Name        = "${local.customer_workload_name}-main-node-group"
         Environment = var.customer_workload_environment
