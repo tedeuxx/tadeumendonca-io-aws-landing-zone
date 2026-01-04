@@ -2,6 +2,10 @@
 # AWS ORGANIZATIONS FOUNDATION
 ############################
 
+# TODO: Temporarily disabled to isolate terraform plan issues
+# Will re-enable once basic infrastructure is working
+
+/*
 # AWS Organizations Module
 module "aws_organizations" {
   source = "../modules/aws-organizations"
@@ -143,6 +147,7 @@ module "aws_organizations" {
 
   depends_on = [aws_s3_bucket_policy.cloudtrail_bucket_policy]
 }
+*/
 
 # S3 Bucket for CloudTrail
 resource "aws_s3_bucket" "cloudtrail_bucket" {
