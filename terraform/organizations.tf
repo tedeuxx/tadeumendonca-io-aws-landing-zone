@@ -83,7 +83,6 @@ module "aws_organizations" {
                 "aws:PrincipalType" = "Root"
               }
             }
-            Principal = "*"
           },
           {
             Sid    = "RequireMFAForHighRiskActions"
@@ -124,10 +123,12 @@ module "aws_organizations" {
   cloudtrail_s3_bucket_name = aws_s3_bucket.cloudtrail_bucket.bucket
   cloudtrail_event_selectors = [
     {
+      read_write_type                 = "All"
+      include_management_events       = true
       data_resources = [
         {
           type   = "AWS::S3::Object"
-          values = ["arn:aws:s3:::*/*"]
+          values = ["arn:aws:s3"]
         }
       ]
     }
