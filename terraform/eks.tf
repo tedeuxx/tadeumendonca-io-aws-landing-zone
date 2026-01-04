@@ -5,7 +5,7 @@
 # EKS Cluster using terraform-aws-modules/eks/aws
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 20.0"
+  version = "~> 19.0"  # Use v19 which is compatible with AWS provider 5.x
 
   cluster_name    = "${local.customer_workload_name}-eks"
   cluster_version = "1.28"
@@ -123,7 +123,6 @@ resource "aws_kms_alias" "eks" {
 # IAM ROLES FOR SERVICE ACCOUNTS (IRSA)
 ############################
 
-# IAM role for AWS Load Balancer Controller
 module "aws_load_balancer_controller_irsa_role" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
   version = "~> 5.0"
