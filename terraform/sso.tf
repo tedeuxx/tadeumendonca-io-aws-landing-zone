@@ -227,8 +227,8 @@ resource "aws_cloudtrail" "sso_audit_trail" {
   enable_logging                = true
 
   event_selector {
-    read_write_type           = "All"
-    include_management_events = true
+    read_write_type                  = "All"
+    include_management_events        = true
     exclude_management_event_sources = []
   }
 
