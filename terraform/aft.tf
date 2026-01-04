@@ -50,10 +50,6 @@ module "aft" {
     Project     = "aws-landing-zone"
     Component   = "account-factory"
   }
-
-  depends_on = [
-    module.aws_organizations
-  ]
 }
 
 # S3 Bucket for AFT Account Requests (if using S3 instead of GitHub)
