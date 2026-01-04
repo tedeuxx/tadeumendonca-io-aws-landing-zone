@@ -70,6 +70,19 @@ output "cloudtrail_bucket_name" {
 }
 
 ############################
+# AFT (Account Factory for Terraform)
+############################
+output "aft_account_requests_bucket_name" {
+  description = "AFT Account Requests S3 Bucket Name"
+  value       = aws_s3_bucket.aft_account_requests.bucket
+}
+
+output "aft_account_provisioning_role_arn" {
+  description = "AFT Account Provisioning Role ARN"
+  value       = aws_iam_role.aft_account_provisioning_role.arn
+}
+
+############################
 # VPC
 ############################
 output "vpc_id" {

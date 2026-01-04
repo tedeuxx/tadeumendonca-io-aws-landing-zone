@@ -4,7 +4,7 @@
 
 # AWS Organizations Module
 module "aws_organizations" {
-  source = "./modules/aws-organizations"
+  source = "../modules/aws-organizations"
 
   # Organizational Units
   organizational_units = {
