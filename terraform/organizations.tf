@@ -2,204 +2,148 @@
 # AWS ORGANIZATIONS FOUNDATION
 ############################
 
-# AWS Organizations
-resource "aws_organizations_organization" "main" {
-  aws_service_access_principals = [
-    "cloudtrail.amazonaws.com",
-    "config.amazonaws.com",
-    "sso.amazonaws.com",
-    "account.amazonaws.com"
-  ]
+# AWS Organizations Module
+module "aws_organizations" {
+  source = "./modules/aws-organizations"
 
-  feature_set = "ALL"
-
-  enabled_policy_types = [
-    "SERVICE_CONTROL_POLICY",
-    "TAG_POLICY"
-  ]
-}
-
-# Organizational Units
-resource "aws_organizations_organizational_unit" "security" {
-  name      = "Security"
-  parent_id = aws_organizations_organization.main.roots[0].id
-
-  tags = {
-    Name        = "Security-OU"
-    Environment = var.customer_workload_environment
-    Purpose     = "security-accounts"
-  }
-}
-
-resource "aws_organizations_organizational_unit" "development" {
-  name      = "Development"
-  parent_id = aws_organizations_organization.main.roots[0].id
-
-  tags = {
-    Name        = "Development-OU"
-    Environment = var.customer_workload_environment
-    Purpose     = "development-accounts"
-  }
-}
-
-resource "aws_organizations_organizational_unit" "staging" {
-  name      = "Staging"
-  parent_id = aws_organizations_organization.main.roots[0].id
-
-  tags = {
-    Name        = "Staging-OU"
-    Environment = var.customer_workload_environment
-    Purpose     = "staging-accounts"
-  }
-}
-
-resource "aws_organizations_organizational_unit" "production" {
-  name      = "Production"
-  parent_id = aws_organizations_organization.main.roots[0].id
-
-  tags = {
-    Name        = "Production-OU"
-    Environment = var.customer_workload_environment
-    Purpose     = "production-accounts"
-  }
-}
-
-# Initial AWS Accounts
-resource "aws_organizations_account" "security" {
-  name      = "Security Account"
-  email     = "security@${local.customer_workload_name}"
-  parent_id = aws_organizations_organizational_unit.security.id
-
-  tags = {
-    Name        = "Security-Account"
-    Environment = var.customer_workload_environment
-    Purpose     = "security-tooling"
-  }
-
-  lifecycle {
-    ignore_changes = [role_name]
-  }
-}
-
-resource "aws_organizations_account" "log_archive" {
-  name      = "Log Archive Account"
-  email     = "log-archive@${local.customer_workload_name}"
-  parent_id = aws_organizations_organizational_unit.security.id
-
-  tags = {
-    Name        = "LogArchive-Account"
-    Environment = var.customer_workload_environment
-    Purpose     = "log-storage"
-  }
-
-  lifecycle {
-    ignore_changes = [role_name]
-  }
-}
-
-resource "aws_organizations_account" "audit" {
-  name      = "Audit Account"
-  email     = "audit@${local.customer_workload_name}"
-  parent_id = aws_organizations_organizational_unit.security.id
-
-  tags = {
-    Name        = "Audit-Account"
-    Environment = var.customer_workload_environment
-    Purpose     = "compliance-auditing"
-  }
-
-  lifecycle {
-    ignore_changes = [role_name]
-  }
-}
-
-# Service Control Policies
-resource "aws_organizations_policy" "baseline_scp" {
-  name        = "BaselineSecurityPolicy"
-  description = "Baseline security controls for all accounts"
-  type        = "SERVICE_CONTROL_POLICY"
-
-  content = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid    = "DenyLeavingOrganization"
-        Effect = "Deny"
-        Action = [
-          "organizations:LeaveOrganization",
-          "account:CloseAccount"
-        ]
-        Resource = "*"
-      },
-      {
-        Sid    = "DenyRootUserActions"
-        Effect = "Deny"
-        Action = "*"
-        Resource = "*"
-        Condition = {
-          StringEquals = {
-            "aws:PrincipalType" = "Root"
-          }
-        }
-        Principal = "*"
-      },
-      {
-        Sid    = "RequireMFAForHighRiskActions"
-        Effect = "Deny"
-        Action = [
-          "iam:DeleteRole",
-          "iam:DeleteUser",
-          "iam:DeleteAccessKey",
-          "iam:CreateUser",
-          "iam:CreateRole"
-        ]
-        Resource = "*"
-        Condition = {
-          BoolIfExists = {
-            "aws:MultiFactorAuthPresent" = "false"
-          }
-        }
+  # Organizational Units
+  organizational_units = {
+    security = {
+      name = "Security"
+      tags = {
+        Purpose = "security-accounts"
       }
-    ]
-  })
-
-  tags = {
-    Name        = "Baseline-SCP"
-    Environment = var.customer_workload_environment
-    Purpose     = "baseline-security"
-  }
-}
-
-# Attach SCP to Root
-resource "aws_organizations_policy_attachment" "baseline_scp_root" {
-  policy_id = aws_organizations_policy.baseline_scp.id
-  target_id = aws_organizations_organization.main.roots[0].id
-}
-
-# Organization-wide CloudTrail
-resource "aws_cloudtrail" "organization_trail" {
-  name                          = "${local.customer_workload_name}-organization-trail"
-  s3_bucket_name               = aws_s3_bucket.cloudtrail_bucket.bucket
-  include_global_service_events = true
-  is_multi_region_trail        = true
-  is_organization_trail        = true
-  enable_logging               = true
-
-  event_selector {
-    read_write_type                 = "All"
-    include_management_events       = true
-    exclude_management_event_sources = []
-
-    data_resource {
-      type   = "AWS::S3::Object"
-      values = ["arn:aws:s3:::*/*"]
+    }
+    development = {
+      name = "Development"
+      tags = {
+        Purpose = "development-accounts"
+      }
+    }
+    staging = {
+      name = "Staging"
+      tags = {
+        Purpose = "staging-accounts"
+      }
+    }
+    production = {
+      name = "Production"
+      tags = {
+        Purpose = "production-accounts"
+      }
     }
   }
 
-  tags = {
-    Name        = "${local.customer_workload_name}-organization-trail"
+  # Initial AWS Accounts
+  accounts = {
+    security = {
+      name          = "Security Account"
+      email         = "security@${local.customer_workload_name}"
+      parent_ou_key = "security"
+      tags = {
+        Purpose = "security-tooling"
+      }
+    }
+    log_archive = {
+      name          = "Log Archive Account"
+      email         = "log-archive@${local.customer_workload_name}"
+      parent_ou_key = "security"
+      tags = {
+        Purpose = "log-storage"
+      }
+    }
+    audit = {
+      name          = "Audit Account"
+      email         = "audit@${local.customer_workload_name}"
+      parent_ou_key = "security"
+      tags = {
+        Purpose = "compliance-auditing"
+      }
+    }
+  }
+
+  # Service Control Policies
+  service_control_policies = {
+    baseline_security = {
+      name        = "BaselineSecurityPolicy"
+      description = "Baseline security controls for all accounts"
+      content = jsonencode({
+        Version = "2012-10-17"
+        Statement = [
+          {
+            Sid    = "DenyLeavingOrganization"
+            Effect = "Deny"
+            Action = [
+              "organizations:LeaveOrganization",
+              "account:CloseAccount"
+            ]
+            Resource = "*"
+          },
+          {
+            Sid      = "DenyRootUserActions"
+            Effect   = "Deny"
+            Action   = "*"
+            Resource = "*"
+            Condition = {
+              StringEquals = {
+                "aws:PrincipalType" = "Root"
+              }
+            }
+            Principal = "*"
+          },
+          {
+            Sid    = "RequireMFAForHighRiskActions"
+            Effect = "Deny"
+            Action = [
+              "iam:DeleteRole",
+              "iam:DeleteUser",
+              "iam:DeleteAccessKey",
+              "iam:CreateUser",
+              "iam:CreateRole"
+            ]
+            Resource = "*"
+            Condition = {
+              BoolIfExists = {
+                "aws:MultiFactorAuthPresent" = "false"
+              }
+            }
+          }
+        ]
+      })
+      tags = {
+        Purpose = "baseline-security"
+      }
+    }
+  }
+
+  # Policy Attachments
+  policy_attachments = {
+    baseline_to_root = {
+      policy_key  = "baseline_security"
+      target_type = "root"
+    }
+  }
+
+  # CloudTrail Configuration
+  enable_cloudtrail         = true
+  cloudtrail_name           = "${local.customer_workload_name}-organization-trail"
+  cloudtrail_s3_bucket_name = aws_s3_bucket.cloudtrail_bucket.bucket
+  cloudtrail_event_selectors = [
+    {
+      data_resources = [
+        {
+          type   = "AWS::S3::Object"
+          values = ["arn:aws:s3:::*/*"]
+        }
+      ]
+    }
+  ]
+
+  # Default Tags
+  default_tags = {
     Environment = var.customer_workload_environment
-    Purpose     = "organization-audit-logging"
+    Owner       = var.customer_workload_owner
+    Project     = "aws-landing-zone"
   }
 
   depends_on = [aws_s3_bucket_policy.cloudtrail_bucket_policy]
@@ -274,7 +218,7 @@ resource "aws_s3_bucket_policy" "cloudtrail_bucket_policy" {
         Resource = "${aws_s3_bucket.cloudtrail_bucket.arn}/*"
         Condition = {
           StringEquals = {
-            "s3:x-amz-acl" = "bucket-owner-full-control"
+            "s3:x-amz-acl"  = "bucket-owner-full-control"
             "AWS:SourceArn" = "arn:aws:cloudtrail:${local.aws_region}:${local.aws_account_id}:trail/${local.customer_workload_name}-organization-trail"
           }
         }

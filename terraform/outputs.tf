@@ -21,52 +21,52 @@ output "aws_availability_zones" {
 ############################
 output "organization_id" {
   description = "AWS Organization ID"
-  value       = aws_organizations_organization.main.id
+  value       = module.aws_organizations.organization_id
 }
 
 output "organization_arn" {
   description = "AWS Organization ARN"
-  value       = aws_organizations_organization.main.arn
+  value       = module.aws_organizations.organization_arn
 }
 
 output "organization_master_account_id" {
   description = "AWS Organization Master Account ID"
-  value       = aws_organizations_organization.main.master_account_id
+  value       = module.aws_organizations.organization_master_account_id
 }
 
 output "security_ou_id" {
   description = "Security Organizational Unit ID"
-  value       = aws_organizations_organizational_unit.security.id
+  value       = module.aws_organizations.organizational_units["security"].id
 }
 
 output "development_ou_id" {
   description = "Development Organizational Unit ID"
-  value       = aws_organizations_organizational_unit.development.id
+  value       = module.aws_organizations.organizational_units["development"].id
 }
 
 output "staging_ou_id" {
   description = "Staging Organizational Unit ID"
-  value       = aws_organizations_organizational_unit.staging.id
+  value       = module.aws_organizations.organizational_units["staging"].id
 }
 
 output "production_ou_id" {
   description = "Production Organizational Unit ID"
-  value       = aws_organizations_organizational_unit.production.id
+  value       = module.aws_organizations.organizational_units["production"].id
 }
 
 output "security_account_id" {
   description = "Security Account ID"
-  value       = aws_organizations_account.security.id
+  value       = module.aws_organizations.accounts["security"].id
 }
 
 output "log_archive_account_id" {
   description = "Log Archive Account ID"
-  value       = aws_organizations_account.log_archive.id
+  value       = module.aws_organizations.accounts["log_archive"].id
 }
 
 output "audit_account_id" {
   description = "Audit Account ID"
-  value       = aws_organizations_account.audit.id
+  value       = module.aws_organizations.accounts["audit"].id
 }
 
 output "cloudtrail_bucket_name" {

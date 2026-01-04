@@ -6,7 +6,7 @@ This implementation plan breaks down the AWS landing zone infrastructure into di
 
 ## Tasks
 
-- [-] 1. Set up AWS Organizations foundation
+- [ ] 1. Set up AWS Organizations foundation
   - Create AWS Organizations with management account
   - Set up organizational units (Security, Development, Staging, Production)
   - Create initial AWS accounts (Security, Log Archive, Audit)
