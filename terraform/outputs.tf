@@ -17,6 +17,64 @@ output "aws_availability_zones" {
 }
 
 ############################
+# AWS Organizations
+############################
+output "organization_id" {
+  description = "AWS Organization ID"
+  value       = aws_organizations_organization.main.id
+}
+
+output "organization_arn" {
+  description = "AWS Organization ARN"
+  value       = aws_organizations_organization.main.arn
+}
+
+output "organization_master_account_id" {
+  description = "AWS Organization Master Account ID"
+  value       = aws_organizations_organization.main.master_account_id
+}
+
+output "security_ou_id" {
+  description = "Security Organizational Unit ID"
+  value       = aws_organizations_organizational_unit.security.id
+}
+
+output "development_ou_id" {
+  description = "Development Organizational Unit ID"
+  value       = aws_organizations_organizational_unit.development.id
+}
+
+output "staging_ou_id" {
+  description = "Staging Organizational Unit ID"
+  value       = aws_organizations_organizational_unit.staging.id
+}
+
+output "production_ou_id" {
+  description = "Production Organizational Unit ID"
+  value       = aws_organizations_organizational_unit.production.id
+}
+
+output "security_account_id" {
+  description = "Security Account ID"
+  value       = aws_organizations_account.security.id
+}
+
+output "log_archive_account_id" {
+  description = "Log Archive Account ID"
+  value       = aws_organizations_account.log_archive.id
+}
+
+output "audit_account_id" {
+  description = "Audit Account ID"
+  value       = aws_organizations_account.audit.id
+}
+
+output "cloudtrail_bucket_name" {
+  description = "Organization CloudTrail S3 Bucket Name"
+  value       = aws_s3_bucket.cloudtrail_bucket.bucket
+}
+
+############################
 # VPC
 ############################
 output "vpc_id" {
