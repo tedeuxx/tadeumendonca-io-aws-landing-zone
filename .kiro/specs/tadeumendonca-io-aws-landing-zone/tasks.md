@@ -15,7 +15,7 @@ This implementation plan breaks down the AWS landing zone infrastructure into di
   - Set up consolidated billing and cost allocation tags
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7_
 
-- [ ] 2. Deploy AWS Account Factory for Terraform (AFT)
+- [-] 2. Deploy AWS Account Factory for Terraform (AFT)
   - Set up AFT management account and infrastructure
   - Configure AFT with AWS Control Tower integration
   - Create account request and customization repositories
@@ -25,7 +25,7 @@ This implementation plan breaks down the AWS landing zone infrastructure into di
   - Test account creation and lifecycle management
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8_
 
-- [ ] 3. Configure AWS SSO (Identity Center)
+- [x] 3. Configure AWS SSO (Identity Center)
   - Enable AWS SSO in the management account
   - Create permission sets (OrganizationAdmin, ProductionAdmin, DeveloperAccess, ReadOnly)
   - Configure multi-factor authentication (MFA) policies
@@ -35,7 +35,7 @@ This implementation plan breaks down the AWS landing zone infrastructure into di
   - Test SSO access across all accounts
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7_
 
-- [ ] 4. Set up foundational infrastructure and networking
+- [x] 4. Set up foundational infrastructure and networking
   - Create Terraform project structure with modules
   - Implement VPC with public/private subnets across multiple AZs
   - Configure security groups, NAT gateways, and routing tables

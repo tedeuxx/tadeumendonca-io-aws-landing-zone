@@ -2,11 +2,25 @@
 # AWS ORGANIZATIONS MODULE
 ############################
 
+############################
+# AWS ORGANIZATIONS MODULE
+############################
+
 # AWS Organizations
 resource "aws_organizations_organization" "this" {
   aws_service_access_principals = var.aws_service_access_principals
   feature_set                  = var.feature_set
   enabled_policy_types         = var.enabled_policy_types
+
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes = [
+      # Ignore changes to these attributes if organization already exists
+      aws_service_access_principals,
+      feature_set,
+      enabled_policy_types
+    ]
+  }
 }
 
 # Organizational Units

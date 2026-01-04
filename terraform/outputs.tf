@@ -83,6 +83,44 @@ output "aft_account_provisioning_role_arn" {
 }
 
 ############################
+# SSO (Identity Center)
+############################
+output "sso_instance_arn" {
+  description = "AWS SSO Instance ARN"
+  value       = local.sso_instance_arn
+}
+
+output "identity_store_id" {
+  description = "AWS SSO Identity Store ID"
+  value       = local.identity_store_id
+}
+
+output "organization_admin_permission_set_arn" {
+  description = "Organization Admin Permission Set ARN"
+  value       = aws_ssoadmin_permission_set.organization_admin.arn
+}
+
+output "production_admin_permission_set_arn" {
+  description = "Production Admin Permission Set ARN"
+  value       = aws_ssoadmin_permission_set.production_admin.arn
+}
+
+output "developer_access_permission_set_arn" {
+  description = "Developer Access Permission Set ARN"
+  value       = aws_ssoadmin_permission_set.developer_access.arn
+}
+
+output "read_only_permission_set_arn" {
+  description = "Read Only Permission Set ARN"
+  value       = aws_ssoadmin_permission_set.read_only.arn
+}
+
+output "sso_audit_bucket_name" {
+  description = "SSO Audit S3 Bucket Name"
+  value       = aws_s3_bucket.sso_audit_bucket.bucket
+}
+
+############################
 # VPC
 ############################
 output "vpc_id" {
