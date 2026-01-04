@@ -217,6 +217,8 @@ resource "aws_cloudtrail" "sso_audit_trail" {
   is_multi_region_trail         = true
   enable_logging                = true
 
+  depends_on = [aws_s3_bucket_policy.sso_audit_bucket_policy]
+
   # Focus on management events for SSO auditing
   event_selector {
     read_write_type                  = "All"
@@ -233,7 +235,8 @@ resource "aws_cloudtrail" "sso_audit_trail" {
 
 # SSO Audit Bucket Policy
 resource "aws_s3_bucket_policy" "sso_audit_bucket_policy" {
-  bucket = aws_s3_bucket.sso_audit_bucket.id
+  bucket     = aws_s3_bucket.sso_audit_bucket.id
+  depends_on = [aws_s3_bucket_public_access_block.sso_audit_bucket_pab]
 
   policy = jsonencode({
     Version = "2012-10-17"
