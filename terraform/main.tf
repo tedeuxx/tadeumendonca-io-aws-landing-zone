@@ -251,31 +251,19 @@ resource "aws_security_group" "alb" {
   }
 }
 
-# Security group for RDS PostgreSQL (new resource to avoid state conflicts)
+# Security group for RDS PostgreSQL
 resource "aws_security_group" "rds_new" {
   name_prefix = "${local.customer_workload_name}-rds-v2-"
   vpc_id      = module.vpc.vpc_id
-  description = "Security group for RDS PostgreSQL (v2 - no EKS dependency)"
+  description = "Security group for RDS PostgreSQL (v2 - with EKS integration)"
 
-  # Allow PostgreSQL from EKS worker nodes only (temporarily disabled)
-  # TODO: Re-enable when EKS is deployed
-  /*
+  # Allow PostgreSQL from EKS worker nodes only
   ingress {
     from_port       = 5432
     to_port         = 5432
     protocol        = "tcp"
     security_groups = [module.eks.node_security_group_id]
     description     = "PostgreSQL from EKS worker nodes"
-  }
-  */
-
-  # Temporary: Allow PostgreSQL from private subnets
-  ingress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = module.vpc.private_subnets_cidr_blocks
-    description = "PostgreSQL from private subnets (temporary)"
   }
 
   # No outbound rules needed for RDS

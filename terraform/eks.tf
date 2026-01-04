@@ -2,10 +2,6 @@
 # EKS CLUSTER
 ############################
 
-# TODO: Temporarily disabled EKS to isolate terraform plan issues
-# Will re-enable once base infrastructure is stable
-
-/*
 # EKS Cluster using terraform-aws-modules/eks/aws
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
@@ -101,9 +97,7 @@ module "eks" {
     Purpose     = "kubernetes-cluster"
   }
 }
-*/
 
-/*
 ############################
 # KMS KEY FOR EKS ENCRYPTION
 ############################
@@ -198,4 +192,3 @@ module "cluster_autoscaler_irsa_role" {
     Purpose     = "cluster-autoscaler"
   }
 }
-*/

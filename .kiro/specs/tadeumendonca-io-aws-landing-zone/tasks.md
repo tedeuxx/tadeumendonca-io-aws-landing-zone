@@ -51,7 +51,7 @@ This implementation plan breaks down the AWS landing zone infrastructure into di
   - **Property 2: Security Group Access Control**
   - **Validates: Requirements 4.6**
 
-- [ ] 5. Deploy EKS cluster and core Kubernetes components
+- [x] 5. Deploy EKS cluster and core Kubernetes components
   - Create EKS cluster with managed node groups in production account
   - Configure cluster autoscaling and appropriate instance types
   - Install AWS Load Balancer Controller
