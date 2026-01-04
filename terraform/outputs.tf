@@ -39,11 +39,6 @@ output "security_ou_id" {
   value       = module.aws_organizations.organizational_units["security"].id
 }
 
-output "development_ou_id" {
-  description = "Development Organizational Unit ID"
-  value       = module.aws_organizations.organizational_units["development"].id
-}
-
 output "staging_ou_id" {
   description = "Staging Organizational Unit ID"
   value       = module.aws_organizations.organizational_units["staging"].id

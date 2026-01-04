@@ -14,12 +14,6 @@ module "aws_organizations" {
         Purpose = "security-accounts"
       }
     }
-    development = {
-      name = "Development"
-      tags = {
-        Purpose = "development-accounts"
-      }
-    }
     staging = {
       name = "Staging"
       tags = {

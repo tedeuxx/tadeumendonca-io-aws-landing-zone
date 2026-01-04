@@ -33,7 +33,7 @@ This specification defines the infrastructure requirements for the Tadeumendonca
 #### Acceptance Criteria
 
 1. THE Organization_Management SHALL create an AWS Organizations setup with a management account
-2. THE Organization_Management SHALL create organizational units for different environments (Development, Staging, Production)
+2. THE Organization_Management SHALL create organizational units for different environments (Staging, Production)
 3. THE Organization_Management SHALL create separate AWS accounts for each environment
 4. THE Organization_Management SHALL implement Service Control Policies (SCPs) for security and compliance
 5. THE Organization_Management SHALL enable AWS CloudTrail organization trail for centralized logging
@@ -206,7 +206,7 @@ This specification defines the infrastructure requirements for the Tadeumendonca
 7. THE GitOps_Service SHALL support canary deployments with automatic traffic shifting based on success metrics
 8. THE GitOps_Service SHALL support blue-green deployments with instant traffic switching capabilities
 9. THE GitOps_Service SHALL validate Kubernetes manifests before applying them
-10. THE Web_Application_Infrastructure SHALL maintain environment separation for development and production workloads
+10. THE Web_Application_Infrastructure SHALL maintain environment separation for staging and production workloads
 11. THE GitOps_Service SHALL provide notifications for deployment events and failures
 12. THE GitOps_Service SHALL integrate with Observability_Stack to monitor deployment health and automatically rollback on failure
 13. THE GitOps_Service SHALL support Argo Rollouts for advanced deployment strategies with analysis and promotion
