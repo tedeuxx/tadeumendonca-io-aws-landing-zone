@@ -97,17 +97,6 @@ module "eks" {
   # Enable IRSA (IAM Roles for Service Accounts)
   enable_irsa = true
 
-  # Manage aws-auth configmap
-  manage_aws_auth_configmap = true
-
-  aws_auth_roles = [
-    {
-      rolearn  = "arn:aws:iam::${local.aws_account_id}:root"
-      username = "admin"
-      groups   = ["system:masters"]
-    },
-  ]
-
   tags = {
     Name        = "${local.customer_workload_name}-eks"
     Environment = var.customer_workload_environment
