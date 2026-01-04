@@ -179,32 +179,32 @@ output "cluster_autoscaler_role_arn" {
 ############################
 output "vpc_id" {
   description = "VPC ID"
-  value       = module.vpc.vpc_id
+  value       = local.vpc_id
 }
 
 output "vpc_cidr_block" {
   description = "VPC CIDR block"
-  value       = module.vpc.vpc_cidr_block
+  value       = local.vpc_cidr_block
 }
 
 output "public_subnets" {
   description = "Public subnet IDs"
-  value       = module.vpc.public_subnets
+  value       = local.public_subnets
 }
 
 output "private_subnets" {
   description = "Private subnet IDs"
-  value       = module.vpc.private_subnets
+  value       = local.private_subnets
 }
 
 output "database_subnets" {
   description = "Database subnet IDs"
-  value       = module.vpc.database_subnets
+  value       = local.database_subnets
 }
 
 output "database_subnet_group_name" {
   description = "Database subnet group name"
-  value       = module.vpc.database_subnet_group_name
+  value       = aws_db_subnet_group.database.name
 }
 
 ############################

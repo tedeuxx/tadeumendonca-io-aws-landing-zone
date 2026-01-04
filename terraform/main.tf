@@ -3,6 +3,65 @@
 ############################
 
 # VPC Module using official AWS community module
+# Using existing VPC to avoid VpcLimitExceeded error
+data "aws_vpc" "existing" {
+  # Get the default VPC or specify a specific VPC ID
+  default = true
+}
+
+data "aws_subnets" "existing_public" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.existing.id]
+  }
+  
+  filter {
+    name   = "map-public-ip-on-launch"
+    values = ["true"]
+  }
+}
+
+data "aws_subnets" "existing_private" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.existing.id]
+  }
+  
+  filter {
+    name   = "map-public-ip-on-launch"
+    values = ["false"]
+  }
+}
+
+# Create a local reference to mimic the VPC module structure
+locals {
+  vpc_id                      = data.aws_vpc.existing.id
+  vpc_cidr_block             = data.aws_vpc.existing.cidr_block
+  public_subnets             = data.aws_subnets.existing_public.ids
+  private_subnets            = length(data.aws_subnets.existing_private.ids) > 0 ? data.aws_subnets.existing_private.ids : data.aws_subnets.existing_public.ids
+  database_subnets           = length(data.aws_subnets.existing_private.ids) > 0 ? data.aws_subnets.existing_private.ids : data.aws_subnets.existing_public.ids
+  private_subnets_cidr_blocks = [for subnet_id in local.private_subnets : data.aws_subnet.private[subnet_id].cidr_block]
+}
+
+data "aws_subnet" "private" {
+  for_each = toset(local.private_subnets)
+  id       = each.value
+}
+
+# Create database subnet group manually since we're not using the VPC module
+resource "aws_db_subnet_group" "database" {
+  name       = "${local.customer_workload_name}-db-${random_id.bucket_suffix.hex}"
+  subnet_ids = local.database_subnets
+
+  tags = {
+    Name        = "${local.customer_workload_name}-db-subnet-group"
+    Environment = var.customer_workload_environment
+    Type        = "database"
+  }
+}
+
+# Comment out the VPC module to avoid VpcLimitExceeded
+/*
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 5.0"
@@ -49,6 +108,7 @@ module "vpc" {
     Type = "database"
   }
 }
+*/
 
 # S3 Buckets for application assets and backups
 module "assets_bucket" {
@@ -214,7 +274,7 @@ resource "random_id" "bucket_suffix" {
 # Security group for Application Load Balancer
 resource "aws_security_group" "alb" {
   name_prefix = "${local.customer_workload_name}-alb-"
-  vpc_id      = module.vpc.vpc_id
+  vpc_id      = local.vpc_id
   description = "Security group for Application Load Balancer"
 
   # Allow HTTP from internet
@@ -254,7 +314,7 @@ resource "aws_security_group" "alb" {
 # Security group for RDS PostgreSQL
 resource "aws_security_group" "rds_new" {
   name_prefix = "${local.customer_workload_name}-rds-v2-"
-  vpc_id      = module.vpc.vpc_id
+  vpc_id      = local.vpc_id
   description = "Security group for RDS PostgreSQL (v2 - temporary without EKS)"
 
   # Temporary: Allow PostgreSQL from private subnets (until EKS is re-enabled)
@@ -262,7 +322,7 @@ resource "aws_security_group" "rds_new" {
     from_port   = 5432
     to_port     = 5432
     protocol    = "tcp"
-    cidr_blocks = module.vpc.private_subnets_cidr_blocks
+    cidr_blocks = local.private_subnets_cidr_blocks
     description = "PostgreSQL from private subnets (temporary)"
   }
 
