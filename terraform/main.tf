@@ -207,91 +207,11 @@ resource "random_id" "bucket_suffix" {
   byte_length = 4
 }
 
-# Security Groups
-resource "aws_security_group" "eks_control_plane" {
-  name_prefix = "${local.customer_workload_name}-eks-control-plane-"
-  vpc_id      = module.vpc.vpc_id
-  description = "Security group for EKS control plane"
+############################
+# SECURITY GROUPS
+############################
 
-  # Allow HTTPS from worker nodes
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = module.vpc.private_subnets_cidr_blocks
-    description = "HTTPS from worker nodes"
-  }
-
-  # Allow all outbound traffic
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "All outbound traffic"
-  }
-
-  tags = {
-    Name        = "${local.customer_workload_name}-eks-control-plane-sg"
-    Environment = var.customer_workload_environment
-  }
-}
-
-resource "aws_security_group" "eks_worker_nodes" {
-  name_prefix = "${local.customer_workload_name}-eks-worker-nodes-"
-  vpc_id      = module.vpc.vpc_id
-  description = "Security group for EKS worker nodes"
-
-  # Allow communication between worker nodes
-  ingress {
-    from_port   = 0
-    to_port     = 65535
-    protocol    = "tcp"
-    self        = true
-    description = "Worker node communication"
-  }
-
-  # Allow communication from control plane
-  ingress {
-    from_port       = 1025
-    to_port         = 65535
-    protocol        = "tcp"
-    security_groups = [aws_security_group.eks_control_plane.id]
-    description     = "Control plane communication"
-  }
-
-  # Allow HTTP/HTTPS from ALB
-  ingress {
-    from_port       = 80
-    to_port         = 80
-    protocol        = "tcp"
-    security_groups = [aws_security_group.alb.id]
-    description     = "HTTP from ALB"
-  }
-
-  ingress {
-    from_port       = 443
-    to_port         = 443
-    protocol        = "tcp"
-    security_groups = [aws_security_group.alb.id]
-    description     = "HTTPS from ALB"
-  }
-
-  # Allow all outbound traffic
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "All outbound traffic"
-  }
-
-  tags = {
-    Name        = "${local.customer_workload_name}-eks-worker-nodes-sg"
-    Environment = var.customer_workload_environment
-  }
-}
-
+# Security group for Application Load Balancer
 resource "aws_security_group" "alb" {
   name_prefix = "${local.customer_workload_name}-alb-"
   vpc_id      = module.vpc.vpc_id
@@ -327,9 +247,11 @@ resource "aws_security_group" "alb" {
   tags = {
     Name        = "${local.customer_workload_name}-alb-sg"
     Environment = var.customer_workload_environment
+    Purpose     = "application-load-balancer"
   }
 }
 
+# Security group for RDS PostgreSQL
 resource "aws_security_group" "rds" {
   name_prefix = "${local.customer_workload_name}-rds-"
   vpc_id      = module.vpc.vpc_id
@@ -337,11 +259,11 @@ resource "aws_security_group" "rds" {
 
   # Allow PostgreSQL from EKS worker nodes only
   ingress {
-    from_port       = 5432
-    to_port         = 5432
-    protocol        = "tcp"
-    security_groups = [aws_security_group.eks_worker_nodes.id]
-    description     = "PostgreSQL from EKS worker nodes"
+    from_port                = 5432
+    to_port                  = 5432
+    protocol                 = "tcp"
+    source_security_group_id = module.eks.node_security_group_id
+    description              = "PostgreSQL from EKS worker nodes"
   }
 
   # No outbound rules needed for RDS
@@ -349,5 +271,6 @@ resource "aws_security_group" "rds" {
   tags = {
     Name        = "${local.customer_workload_name}-rds-sg"
     Environment = var.customer_workload_environment
+    Purpose     = "rds-database"
   }
 }

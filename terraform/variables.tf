@@ -59,3 +59,13 @@ variable "sso_readonly_group_id" {
   type        = string
   default     = "" # Will be populated after SSO group creation
 }
+
+############################
+# EKS VARIABLES
+############################
+
+variable "eks_node_ssh_key_name" {
+  description = "EC2 Key Pair name for EKS node SSH access (optional)"
+  type        = string
+  default     = ""
+}
