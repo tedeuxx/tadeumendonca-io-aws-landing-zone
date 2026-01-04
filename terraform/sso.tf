@@ -9,7 +9,7 @@ resource "aws_ssoadmin_instances" "main" {}
 data "aws_ssoadmin_instances" "main" {}
 
 locals {
-  sso_instance_arn = tolist(data.aws_ssoadmin_instances.main.arns)[0]
+  sso_instance_arn  = tolist(data.aws_ssoadmin_instances.main.arns)[0]
   identity_store_id = tolist(data.aws_ssoadmin_instances.main.identity_store_ids)[0]
 }
 
@@ -111,7 +111,7 @@ resource "aws_ssoadmin_managed_policy_attachment" "read_only_policy" {
 
 # Production Admin - Additional IAM permissions for specific tasks
 resource "aws_ssoadmin_permission_set_inline_policy" "production_admin_iam" {
-  inline_policy      = jsonencode({
+  inline_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
@@ -152,7 +152,7 @@ resource "aws_ssoadmin_permission_set_inline_policy" "production_admin_iam" {
 
 # Developer Access - Restricted IAM permissions
 resource "aws_ssoadmin_permission_set_inline_policy" "developer_access_restrictions" {
-  inline_policy      = jsonencode({
+  inline_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
@@ -188,10 +188,10 @@ resource "aws_ssoadmin_permission_set_inline_policy" "developer_access_restricti
 resource "aws_ssoadmin_account_assignment" "organization_admin_management" {
   instance_arn       = local.sso_instance_arn
   permission_set_arn = aws_ssoadmin_permission_set.organization_admin.arn
-  
+
   principal_id   = var.sso_admin_user_id
   principal_type = "USER"
-  
+
   target_id   = local.aws_account_id
   target_type = "AWS_ACCOUNT"
 }
@@ -206,10 +206,10 @@ resource "aws_ssoadmin_account_assignment" "organization_admin_management" {
 resource "aws_ssoadmin_account_assignment" "read_only_management" {
   instance_arn       = local.sso_instance_arn
   permission_set_arn = aws_ssoadmin_permission_set.read_only.arn
-  
+
   principal_id   = var.sso_readonly_group_id
   principal_type = "GROUP"
-  
+
   target_id   = local.aws_account_id
   target_type = "AWS_ACCOUNT"
 }
@@ -224,14 +224,14 @@ resource "aws_ssoadmin_account_assignment" "read_only_management" {
 # Audit Logging Configuration
 resource "aws_cloudtrail" "sso_audit_trail" {
   name                          = "${local.customer_workload_name}-sso-audit-trail"
-  s3_bucket_name               = aws_s3_bucket.sso_audit_bucket.bucket
+  s3_bucket_name                = aws_s3_bucket.sso_audit_bucket.bucket
   include_global_service_events = true
-  is_multi_region_trail        = true
-  enable_logging               = true
+  is_multi_region_trail         = true
+  enable_logging                = true
 
   event_selector {
-    read_write_type                 = "All"
-    include_management_events       = true
+    read_write_type           = "All"
+    include_management_events = true
 
     data_resource {
       type   = "AWS::SSO::*"
