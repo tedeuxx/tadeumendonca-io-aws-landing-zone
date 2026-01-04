@@ -1,70 +1,123 @@
-# Design Document: Web Application Hosting Infrastructure
+# Design Document: Scalable AWS Foundation and Web Application Hosting Infrastructure
 
 ## Overview
 
-This design document outlines a comprehensive, cloud-native web application hosting infrastructure for a one-man digital startup. The solution leverages AWS services in a multi-region architecture with sa-east-1 as the primary region and us-east-1 for global services. The infrastructure provides a modern Kubernetes platform with service mesh capabilities, GitOps deployment workflows, and comprehensive observability.
+This design document outlines a comprehensive, scalable AWS foundation and web application hosting infrastructure for a one-man digital startup that can grow into an enterprise. The solution starts with a secure organizational foundation using AWS Organizations and Single Sign-On (SSO), then layers on a modern Kubernetes platform with service mesh capabilities, GitOps deployment workflows, and comprehensive observability.
 
-The architecture follows cloud-native best practices with Infrastructure as Code (Terraform using official AWS community modules), containerized workloads (EKS), service mesh (Istio), GitOps (ArgoCD), and a complete observability stack (Prometheus, Grafana, Kiali). This design enables rapid application development and deployment while maintaining enterprise-grade security, reliability, and cost optimization.
+The architecture follows a foundation-first approach with AWS Organizations for multi-account management, AWS SSO for centralized identity, followed by cloud-native best practices with Infrastructure as Code (Terraform using official AWS community modules), containerized workloads (EKS), service mesh (Istio), GitOps (ArgoCD), and a complete observability stack (Prometheus, Grafana, Kiali). This design enables secure scaling from startup to enterprise while maintaining security, reliability, and cost optimization.
+
+**Foundation Strategy:** The infrastructure starts with AWS Organizations to establish a secure, scalable multi-account foundation that can grow with the business, ensuring proper separation of concerns and centralized governance from day one.
 
 **Module Strategy:** The infrastructure leverages proven, community-maintained Terraform modules from the terraform-aws-modules organization to ensure best practices, reduce maintenance overhead, and benefit from community contributions and security updates.
 
 ## Architecture
 
-### High-Level Architecture
+### High-Level Multi-Account Architecture
 
 ```mermaid
 graph TB
-    subgraph "Global Services (us-east-1)"
-        CF[CloudFront CDN]
-        ACM[ACM Certificates]
-        R53[Route 53 DNS]
-    end
-    
-    subgraph "Primary Region (sa-east-1)"
-        subgraph "VPC"
-            subgraph "Public Subnets"
-                ALB[Application Load Balancer]
-                NAT[NAT Gateway]
-            end
-            
-            subgraph "Private Subnets"
-                subgraph "EKS Cluster"
-                    subgraph "Control Plane"
-                        API[EKS API Server]
-                    end
-                    
-                    subgraph "Worker Nodes"
-                        subgraph "Istio System"
-                            IG[Istio Gateway]
-                            IC[Istio Control Plane]
-                        end
-                        
-                        subgraph "Application Pods"
-                            APP1[App 1 + Sidecar]
-                            APP2[App 2 + Sidecar]
-                        end
-                        
-                        subgraph "GitOps"
-                            ARGO[ArgoCD]
-                            ROLLOUTS[Argo Rollouts]
-                        end
-                        
-                        subgraph "Observability"
-                            PROM[Prometheus]
-                            GRAF[Grafana]
-                            KIALI[Kiali]
-                        end
-                    end
-                end
-                
-                RDS[(RDS PostgreSQL)]
-            end
+    subgraph "AWS Organizations"
+        subgraph "Management Account"
+            ORG[AWS Organizations]
+            SSO[AWS SSO/Identity Center]
+            CT[CloudTrail Organization Trail]
+            BILL[Consolidated Billing]
         end
         
-        S3[S3 Buckets]
+        subgraph "AFT Management Account"
+            AFT[Account Factory for Terraform]
+            AFTPIPE[AFT Pipeline]
+            AFTREPO[Account Request Repository]
+            AFTCUST[Account Customization Repository]
+        end
+        
+        subgraph "Security OU"
+            SEC[Security Account]
+            LOG[Log Archive Account]
+            AUDIT[Audit Account]
+        end
+        
+        subgraph "Development OU"
+            DEV[Development Account]
+        end
+        
+        subgraph "Staging OU"
+            STAGE[Staging Account]
+        end
+        
+        subgraph "Production OU"
+            PROD[Production Account]
+        end
     end
     
-    USER[Users] --> CF
+    subgraph "Production Account Infrastructure"
+        subgraph "Global Services (us-east-1)"
+            CF[CloudFront CDN]
+            ACM[ACM Certificates]
+            R53[Route 53 DNS]
+        end
+        
+        subgraph "Primary Region (sa-east-1)"
+            subgraph "VPC"
+                subgraph "Public Subnets"
+                    ALB[Application Load Balancer]
+                    NAT[NAT Gateway]
+                end
+                
+                subgraph "Private Subnets"
+                    subgraph "EKS Cluster"
+                        subgraph "Control Plane"
+                            API[EKS API Server]
+                        end
+                        
+                        subgraph "Worker Nodes"
+                            subgraph "Istio System"
+                                IG[Istio Gateway]
+                                IC[Istio Control Plane]
+                            end
+                            
+                            subgraph "Application Pods"
+                                APP1[App 1 + Sidecar]
+                                APP2[App 2 + Sidecar]
+                            end
+                            
+                            subgraph "GitOps"
+                                ARGO[ArgoCD]
+                                ROLLOUTS[Argo Rollouts]
+                            end
+                            
+                            subgraph "Observability"
+                                PROM[Prometheus]
+                                GRAF[Grafana]
+                                KIALI[Kiali]
+                            end
+                        end
+                    end
+                    
+                    RDS[(RDS PostgreSQL)]
+                end
+            end
+            
+            S3[S3 Buckets]
+        end
+    end
+    
+    USER[Users] --> SSO
+    SSO --> DEV
+    SSO --> STAGE
+    SSO --> PROD
+    
+    AFT --> DEV
+    AFT --> STAGE
+    AFT --> PROD
+    AFT --> SEC
+    AFT --> LOG
+    AFT --> AUDIT
+    
+    AFTREPO --> AFTPIPE
+    AFTCUST --> AFTPIPE
+    
+    USER --> CF
     CF --> ALB
     ALB --> IG
     IG --> APP1
@@ -83,23 +136,110 @@ graph TB
     KIALI --> IC
 ```
 
-### Regional Distribution
+### Account Strategy
 
-**Primary Region (sa-east-1):**
-- EKS cluster with all application workloads
-- RDS PostgreSQL database
-- VPC with public/private subnets
-- Application Load Balancer
-- S3 buckets for application data
+**Management Account:**
+- AWS Organizations management
+- AWS SSO (Identity Center) for centralized authentication
+- Organization-wide CloudTrail for audit logging
+- Consolidated billing and cost management
+- Service Control Policies (SCPs) enforcement
 
-**Global Services Region (us-east-1):**
-- CloudFront distributions for global content delivery
-- ACM certificates for CloudFront and ALB
-- Route 53 hosted zones for DNS management
+**AFT Management Account:**
+- AWS Account Factory for Terraform (AFT) infrastructure
+- Automated account provisioning and lifecycle management
+- Account baseline configuration and customization
+- Integration with AWS Control Tower for enhanced governance
+- Git-based account-as-code workflows
+
+**Security Organizational Unit:**
+- **Security Account**: Security tooling and compliance monitoring
+- **Log Archive Account**: Centralized log storage and retention
+- **Audit Account**: Independent security auditing and compliance
+
+**Environment Organizational Units:**
+- **Development Account**: Development workloads and testing
+- **Staging Account**: Pre-production testing and validation
+- **Production Account**: Live production workloads and data
 
 ## Components and Interfaces
 
-### 1. Network Infrastructure
+### 1. AWS Organizations Foundation
+
+**Organizations Structure:**
+- **Root Organization**: Top-level container for all accounts
+- **Management Account**: Central control and billing account
+- **Organizational Units (OUs)**: Logical groupings for accounts
+  - Security OU: Security, logging, and audit accounts
+  - Development OU: Development and testing accounts
+  - Staging OU: Pre-production accounts
+  - Production OU: Live production accounts
+
+**Service Control Policies (SCPs):**
+- **Root SCP**: Baseline security controls for all accounts
+- **Development SCP**: Relaxed policies for development work
+- **Production SCP**: Strict security controls for production
+- **Security SCP**: Enhanced controls for security accounts
+
+**Account Creation Automation:**
+- Terraform modules for automated account provisioning
+- Standardized account baseline configuration
+- Automatic OU assignment based on account purpose
+- Integration with AWS SSO for immediate access setup
+
+### 2. AWS Account Factory for Terraform (AFT)
+
+**AFT Architecture:**
+- **AFT Management Account**: Dedicated account for AFT infrastructure
+- **AFT Pipeline**: Automated account provisioning and customization pipeline
+- **Account Request Repository**: Git repository for account requests and configurations
+- **Account Customization Repository**: Git repository for account-specific customizations
+- **AFT Backend**: Terraform state management and execution environment
+
+**Account Provisioning Workflow:**
+- **Account Request**: Submit account request via Git repository
+- **Validation**: Automated validation of account configuration
+- **Provisioning**: AFT creates account and applies baseline configuration
+- **Customization**: Apply account-specific customizations and configurations
+- **Enrollment**: Enroll account in AWS Control Tower (if enabled)
+- **Notification**: Notify stakeholders of account creation completion
+
+**Account Baseline Configuration:**
+- **Security Baseline**: Standard security configurations and policies
+- **Compliance Baseline**: Regulatory and organizational compliance settings
+- **Networking Baseline**: Standard VPC and networking configurations
+- **Monitoring Baseline**: CloudTrail, Config, and monitoring setup
+- **Tagging Baseline**: Standardized resource tagging policies
+
+**Integration Points:**
+- **AWS Control Tower**: Enhanced governance and guardrails
+- **AWS Organizations**: Account organization and policy management
+- **AWS SSO**: Automated permission set assignment
+- **Terraform Cloud/Enterprise**: State management and execution
+- **Git Repositories**: Version-controlled account configurations
+
+### 3. AWS SSO (Identity Center) Configuration
+
+**Permission Sets:**
+- **OrganizationAdmin**: Full access to management account and organization
+- **ProductionAdmin**: Administrative access to production accounts
+- **DeveloperAccess**: Development and staging account access
+- **ReadOnlyAccess**: Read-only access across all accounts
+- **SecurityAuditor**: Security-focused access for compliance
+
+**Identity Source Integration:**
+- Internal identity store for startup phase
+- External identity provider integration (Google Workspace, Azure AD)
+- Multi-factor authentication (MFA) enforcement
+- Session duration and re-authentication policies
+
+**Access Management:**
+- Cross-account role assumption through permission sets
+- Temporary elevated access for emergency situations
+- Automated access reviews and compliance reporting
+- Integration with AWS CloudTrail for access auditing
+
+### 4. Network Infrastructure
 
 **VPC Configuration (using terraform-aws-modules/vpc/aws):**
 - CIDR: 10.0.0.0/16
@@ -124,7 +264,7 @@ graph TB
 - Private subnets route to NAT Gateway for outbound access (one per AZ for HA)
 - Database subnets isolated with no internet access
 
-### 2. EKS Cluster Configuration
+### 5. EKS Cluster Configuration
 
 **Cluster Specifications:**
 - Kubernetes version: 1.28+
@@ -144,7 +284,7 @@ graph TB
 - Service accounts with IRSA (IAM Roles for Service Accounts)
 - Namespace-based access controls
 
-### 3. Istio Service Mesh
+### 6. Istio Service Mesh
 
 **Installation Method:**
 - Helm-based installation for better lifecycle management
@@ -163,7 +303,7 @@ graph TB
 - Security policies for authentication and authorization
 - Telemetry configuration for metrics and tracing
 
-### 4. GitOps with ArgoCD and Argo Rollouts
+### 7. GitOps with ArgoCD and Argo Rollouts
 
 **ArgoCD Configuration:**
 - Deployed in dedicated `argocd` namespace
@@ -182,7 +322,7 @@ graph TB
 - **Blue-Green Deployments**: Instant traffic switching with rollback capability
 - **Analysis Templates**: Automated success/failure determination based on metrics
 
-### 5. Observability Stack
+### 8. Observability Stack
 
 **Prometheus Configuration:**
 - Deployed via Helm chart (kube-prometheus-stack)
@@ -203,7 +343,7 @@ graph TB
 - Configuration validation for Istio resources
 - Integration with Prometheus for metrics display
 
-### 6. Database Services
+### 9. Database Services
 
 **RDS PostgreSQL Configuration:**
 - Engine version: PostgreSQL 15+
@@ -217,7 +357,7 @@ graph TB
 - Database credentials stored in AWS Secrets Manager
 - Network isolation in private subnets
 
-### 7. Content Delivery and Storage
+### 10. Content Delivery and Storage
 
 **CloudFront Configuration:**
 - Global edge locations for content delivery
@@ -240,7 +380,7 @@ graph TB
 - Lifecycle policy templates for cost optimization
 - Consistent naming and tagging
 
-### 8. Load Balancing
+### 11. Load Balancing
 
 **Application Load Balancer:**
 - Internet-facing ALB in public subnets
@@ -255,6 +395,145 @@ graph TB
 - Support for multiple applications via virtual services
 
 ## Data Models
+
+### AWS Organizations Configuration
+
+**Organization Structure:**
+```yaml
+# AWS Organizations Terraform Configuration
+resource "aws_organizations_organization" "main" {
+  aws_service_access_principals = [
+    "sso.amazonaws.com",
+    "cloudtrail.amazonaws.com",
+    "config.amazonaws.com"
+  ]
+  
+  feature_set = "ALL"
+  
+  enabled_policy_types = [
+    "SERVICE_CONTROL_POLICY",
+    "TAG_POLICY"
+  ]
+}
+
+# Organizational Units
+resource "aws_organizations_organizational_unit" "security" {
+  name      = "Security"
+  parent_id = aws_organizations_organization.main.roots[0].id
+}
+
+resource "aws_organizations_organizational_unit" "development" {
+  name      = "Development"
+  parent_id = aws_organizations_organization.main.roots[0].id
+}
+```
+
+**Service Control Policy Example:**
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Deny",
+      "Action": [
+        "organizations:LeaveOrganization",
+        "account:CloseAccount"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Deny",
+      "Action": "ec2:TerminateInstances",
+      "Resource": "*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:PrincipalTag/Environment": "Development"
+        }
+      }
+    }
+  ]
+}
+```
+
+**AWS SSO Permission Set:**
+```yaml
+# Permission Set for Developers
+resource "aws_ssoadmin_permission_set" "developer" {
+  name             = "DeveloperAccess"
+  description      = "Developer access to development and staging accounts"
+  instance_arn     = data.aws_ssoadmin_instances.main.arns[0]
+  session_duration = "PT8H"
+  
+  tags = {
+    Environment = "Multi-Account"
+    Purpose     = "Developer-Access"
+  }
+}
+```
+
+**AWS Account Factory for Terraform (AFT):**
+```yaml
+# AFT Configuration
+module "aft" {
+  source = "github.com/aws-ia/terraform-aws-account-factory-for-terraform"
+  
+  # AFT Management Account Configuration
+  ct_management_account_id    = var.ct_management_account_id
+  log_archive_account_id      = var.log_archive_account_id
+  audit_account_id           = var.audit_account_id
+  aft_management_account_id  = var.aft_management_account_id
+  
+  # Repository Configuration
+  account_request_repo_name = "aft-account-requests"
+  global_customizations_repo_name = "aft-global-customizations"
+  account_customizations_repo_name = "aft-account-customizations"
+  
+  # AFT Feature Configuration
+  aft_feature_set                = "ALL"
+  aft_feature_cloudtrail_data_events = true
+  aft_feature_enterprise_support     = false
+  aft_feature_delete_default_vpcs_enabled = true
+  
+  # Terraform Configuration
+  terraform_version = "1.5.0"
+  terraform_distribution = "oss"
+}
+```
+
+**Account Request Example:**
+```yaml
+# account-requests/production-account.tf
+module "production_account" {
+  source = "./modules/aft-account-request"
+
+  control_tower_parameters = {
+    AccountEmail              = "production@tadeumendonca.io"
+    AccountName               = "Production"
+    ManagedOrganizationalUnit = "Production"
+    SSOUserEmail             = "admin@tadeumendonca.io"
+    SSOUserFirstName         = "Production"
+    SSOUserLastName          = "Admin"
+  }
+
+  account_tags = {
+    Environment = "Production"
+    Owner       = "Platform Team"
+    CostCenter  = "Engineering"
+  }
+
+  change_management_parameters = {
+    change_requested_by = "Platform Team"
+    change_reason       = "Production workload account"
+  }
+
+  custom_fields = {
+    backup_retention = "7-years"
+    compliance_level = "high"
+  }
+
+  account_customizations_name = "production-baseline"
+}
+```
 
 ### Infrastructure State Management
 

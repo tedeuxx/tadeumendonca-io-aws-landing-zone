@@ -2,10 +2,15 @@
 
 ## Introduction
 
-This specification defines the infrastructure requirements for hosting web applications in a cost-effective, scalable AWS environment suitable for a one-man digital startup. The system shall provide secure, reliable hosting for both static websites and dynamic web applications with the ability to scale as the business grows. The primary deployment region is sa-east-1 (South America - São Paulo) with us-east-1 (US East - N. Virginia) used for global services.
+This specification defines the infrastructure requirements for a scalable AWS foundation and web application hosting platform suitable for a one-man digital startup that can grow into an enterprise. The system shall provide a secure organizational foundation with AWS Organizations and Single Sign-On (SSO), followed by secure, reliable hosting for containerized web applications with the ability to scale as the business grows. The primary deployment region is sa-east-1 (South America - São Paulo) with us-east-1 (US East - N. Virginia) used for global services.
 
 ## Glossary
 
+- **AWS_Foundation**: AWS Organizations setup with multiple accounts, SSO, and centralized management
+- **Organization_Management**: AWS Organizations with organizational units and account management
+- **Account_Factory**: AWS Account Factory for Terraform (AFT) for automated account provisioning and lifecycle management
+- **Single_Sign_On**: AWS SSO (Identity Center) for centralized authentication and authorization
+- **Landing_Zone**: Secure, well-architected multi-account AWS environment foundation
 - **Web_Application_Infrastructure**: The complete AWS infrastructure stack for hosting web applications
 - **Load_Balancer**: Application Load Balancer that distributes incoming traffic
 - **Container_Service**: EKS cluster for running containerized applications with Kubernetes
@@ -21,7 +26,50 @@ This specification defines the infrastructure requirements for hosting web appli
 
 ## Requirements
 
-### Requirement 1: Network Foundation and Regional Architecture
+### Requirement 1: AWS Organizations Foundation
+
+**User Story:** As a startup founder, I want a scalable AWS organizational foundation with multiple accounts and centralized management, so that my infrastructure can grow securely from startup to enterprise scale.
+
+#### Acceptance Criteria
+
+1. THE Organization_Management SHALL create an AWS Organizations setup with a management account
+2. THE Organization_Management SHALL create organizational units for different environments (Development, Staging, Production)
+3. THE Organization_Management SHALL create separate AWS accounts for each environment
+4. THE Organization_Management SHALL implement Service Control Policies (SCPs) for security and compliance
+5. THE Organization_Management SHALL enable AWS CloudTrail organization trail for centralized logging
+6. THE Organization_Management SHALL configure consolidated billing for cost management
+7. THE Organization_Management SHALL implement account creation automation for future scaling
+
+### Requirement 2: Account Factory for Terraform (AFT)
+
+**User Story:** As a startup founder, I want automated account provisioning and management using AWS Account Factory for Terraform, so that I can scale my organization efficiently with standardized, compliant account creation and lifecycle management.
+
+#### Acceptance Criteria
+
+1. THE Account_Factory SHALL deploy AWS Account Factory for Terraform (AFT) in the management account
+2. THE Account_Factory SHALL integrate with AWS Control Tower for enhanced governance and compliance
+3. THE Account_Factory SHALL provide automated account provisioning through Terraform configurations
+4. THE Account_Factory SHALL implement account baseline configurations for security and compliance
+5. THE Account_Factory SHALL support account customizations through AFT account customization framework
+6. THE Account_Factory SHALL maintain account inventory and lifecycle management
+7. THE Account_Factory SHALL integrate with version control systems for account-as-code workflows
+8. THE Account_Factory SHALL provide automated account closure and cleanup processes
+
+### Requirement 3: Single Sign-On and Identity Management
+
+**User Story:** As a startup founder, I want centralized identity management with Single Sign-On, so that I can securely manage access across multiple AWS accounts as my team grows.
+
+#### Acceptance Criteria
+
+1. THE Single_Sign_On SHALL enable AWS SSO (Identity Center) in the management account
+2. THE Single_Sign_On SHALL create permission sets for different roles (Admin, Developer, ReadOnly)
+3. THE Single_Sign_On SHALL integrate with external identity providers when needed
+4. THE Single_Sign_On SHALL provide multi-factor authentication (MFA) enforcement
+5. THE Single_Sign_On SHALL enable cross-account access through permission sets
+6. THE Single_Sign_On SHALL provide audit logging for all authentication events
+7. THE Single_Sign_On SHALL support automated user provisioning and deprovisioning
+
+### Requirement 4: Network Foundation and Regional Architecture
 
 **User Story:** As a startup founder, I want secure network infrastructure deployed in the appropriate AWS regions, so that my web applications are isolated, protected, and optimally positioned for my target market.
 
@@ -37,7 +85,7 @@ This specification defines the infrastructure requirements for hosting web appli
 8. THE CDN_Service SHALL use us-east-1 for CloudFront distributions and global edge locations
 9. THE Certificate_Service SHALL use us-east-1 for ACM certificates used with CloudFront
 
-### Requirement 2: Load Balancing and Traffic Management
+### Requirement 5: Load Balancing and Traffic Management
 
 **User Story:** As a startup founder, I want reliable traffic distribution, so that my web applications can handle varying loads and remain available.
 
@@ -49,7 +97,7 @@ This specification defines the infrastructure requirements for hosting web appli
 4. THE Load_Balancer SHALL support SSL termination using certificates from Certificate_Service
 5. WHEN no healthy instances are available, THE Load_Balancer SHALL return appropriate error responses
 
-### Requirement 3: Container Application Hosting
+### Requirement 6: Container Application Hosting
 
 **User Story:** As a startup founder, I want to deploy containerized web applications on Kubernetes with service mesh capabilities, so that I can run scalable applications with advanced traffic management and security.
 
@@ -66,7 +114,7 @@ This specification defines the infrastructure requirements for hosting web appli
 9. THE Service_Mesh SHALL handle service-to-service communication with mTLS encryption
 10. THE Service_Mesh SHALL provide traffic routing, load balancing, and circuit breaking capabilities
 
-### Requirement 4: Database Services
+### Requirement 7: Database Services
 
 **User Story:** As a startup founder, I want managed database services, so that my applications can store and retrieve data reliably without database administration overhead.
 
@@ -78,7 +126,7 @@ This specification defines the infrastructure requirements for hosting web appli
 4. THE Database_Service SHALL support connection pooling for efficient resource usage
 5. WHEN the database instance fails, THE Database_Service SHALL automatically failover to a standby instance
 
-### Requirement 5: Content Delivery and Static Hosting
+### Requirement 8: Content Delivery and Static Hosting
 
 **User Story:** As a startup founder, I want fast content delivery for static assets, so that my web applications load quickly for users worldwide.
 
@@ -90,7 +138,7 @@ This specification defines the infrastructure requirements for hosting web appli
 4. WHEN static content is updated, THE CDN_Service SHALL invalidate cached content within 5 minutes
 5. THE CDN_Service SHALL compress content automatically to reduce bandwidth costs
 
-### Requirement 6: Domain and Certificate Management
+### Requirement 9: Domain and Certificate Management
 
 **User Story:** As a startup founder, I want automated domain and SSL certificate management, so that my applications are accessible via custom domains with secure HTTPS connections.
 
@@ -102,7 +150,7 @@ This specification defines the infrastructure requirements for hosting web appli
 4. WHEN certificates are near expiration, THE Certificate_Service SHALL automatically renew them
 5. THE DNS_Service SHALL support both apex domains and subdomains
 
-### Requirement 7: Security and Access Control
+### Requirement 10: Security and Access Control
 
 **User Story:** As a startup founder, I want secure infrastructure with proper access controls, so that my applications and data are protected from unauthorized access.
 
@@ -114,7 +162,7 @@ This specification defines the infrastructure requirements for hosting web appli
 4. THE Storage_Service SHALL encrypt objects at rest and support versioning
 5. THE Web_Application_Infrastructure SHALL log all API calls and access attempts for auditing
 
-### Requirement 8: Cost Optimization
+### Requirement 11: Cost Optimization
 
 **User Story:** As a startup founder, I want cost-effective infrastructure, so that I can minimize operational expenses while maintaining performance and reliability.
 
@@ -127,7 +175,7 @@ This specification defines the infrastructure requirements for hosting web appli
 5. THE CDN_Service SHALL optimize caching strategies to minimize origin requests and data transfer costs
 6. THE Container_Service SHALL support cluster autoscaling to minimize idle node costs
 
-### Requirement 9: Monitoring and Observability
+### Requirement 12: Monitoring and Observability
 
 **User Story:** As a startup founder, I want comprehensive visibility into my infrastructure and application performance, so that I can identify and resolve issues quickly with detailed metrics and service mesh insights.
 
@@ -143,7 +191,7 @@ This specification defines the infrastructure requirements for hosting web appli
 8. THE Service_Mesh SHALL provide real-time traffic flow visualization and service health status
 9. THE Observability_Stack SHALL retain metrics for at least 30 days for trend analysis
 
-### Requirement 10: GitOps and Deployment Management
+### Requirement 13: GitOps and Deployment Management
 
 **User Story:** As a startup founder, I want GitOps-based deployment processes with advanced deployment strategies, so that I can deploy applications safely with canary and blue-green rollouts to minimize risk.
 
@@ -163,7 +211,7 @@ This specification defines the infrastructure requirements for hosting web appli
 12. THE GitOps_Service SHALL integrate with Observability_Stack to monitor deployment health and automatically rollback on failure
 13. THE GitOps_Service SHALL support Argo Rollouts for advanced deployment strategies with analysis and promotion
 
-### Requirement 11: Infrastructure Module Standards
+### Requirement 14: Infrastructure Module Standards
 
 **User Story:** As a startup founder, I want to use proven, community-maintained infrastructure modules, so that I can leverage best practices and reduce maintenance overhead.
 
