@@ -19,24 +19,28 @@ variable "aws_profile" {
 variable "customer_workload_name" {
   description = "AWS Resource Tag - Workload Name"
   type        = string
+  default     = "tadeumendonca.io"
   nullable    = false
 }
 
 variable "customer_workload_owner" {
   description = "AWS Resource Tag - Workload Owner"
   type        = string
+  default     = "tadeu.mendonca"
   nullable    = false
 }
 
 variable "customer_workload_sponsor" {
   description = "AWS Resource Tag - Workload Sponsor"
   type        = string
+  default     = "tadeu.mendonca"
   nullable    = false
 }
 
 variable "customer_workload_environment" {
   description = "AWS Resource Tag - Workload Environment"
   type        = string
+  default     = "main"
   nullable    = false
   validation {
     condition     = contains(["main"], var.customer_workload_environment)
