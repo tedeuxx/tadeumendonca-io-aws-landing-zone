@@ -80,9 +80,3 @@ resource "aws_ssoadmin_permission_set" "read_only" {
 
 # [Additional SSO configuration would go here...]
 */
-
-# Placeholder output for when SSO is not enabled
-output "sso_status" {
-  description = "AWS SSO Status"
-  value       = "AWS SSO must be manually enabled in the console before deploying this configuration"
-}
