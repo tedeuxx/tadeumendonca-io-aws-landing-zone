@@ -160,15 +160,49 @@ jobs:
         working-directory: terraform
         run: |
           echo "📊 Terraform Outputs:"
-          terraform output -json | jq -r 'to_entries[] | "\(.key): \(.value.value)"'
+          
+          # Check if terraform outputs exist and are valid
+          if terraform output -json > /tmp/outputs.json 2>/dev/null; then
+            # Validate JSON before processing
+            if jq empty /tmp/outputs.json 2>/dev/null; then
+              echo "✅ Valid terraform outputs found:"
+              cat /tmp/outputs.json | jq -r 'to_entries[] | "\(.key): \(.value.value)"'
+            else
+              echo "⚠️ Terraform outputs exist but JSON is malformed"
+              echo "Raw output:"
+              terraform output 2>/dev/null || echo "No outputs available"
+            fi
+          else
+            echo "⚠️ No terraform outputs available"
+            echo "This might indicate a partial deployment or configuration issue"
+            terraform output 2>/dev/null || echo "No outputs found"
+          fi
           
           echo ""
           echo "📋 Infrastructure Summary:"
-          echo "✅ VPC ID: $(terraform output -raw vpc_id 2>/dev/null || echo 'Not available')"
-          echo "✅ Public Subnets: $(terraform output -json public_subnets 2>/dev/null | jq -r '. | length') subnets"
-          echo "✅ Private Subnets: $(terraform output -json private_subnets 2>/dev/null | jq -r '. | length') subnets"
-          echo "✅ S3 Assets Bucket: $(terraform output -raw assets_bucket_id 2>/dev/null || echo 'Not available')"
-          echo "✅ S3 Backups Bucket: $(terraform output -raw backups_bucket_id 2>/dev/null || echo 'Not available')"
+          
+          # Use safer output retrieval with error handling
+          VPC_ID=$(terraform output -raw vpc_id 2>/dev/null || echo 'Not available')
+          echo "✅ VPC ID: $VPC_ID"
+          
+          PUBLIC_SUBNETS=$(terraform output -json public_subnets 2>/dev/null | jq -r '. | length' 2>/dev/null || echo 'N/A')
+          echo "✅ Public Subnets: $PUBLIC_SUBNETS subnets"
+          
+          PRIVATE_SUBNETS=$(terraform output -json private_subnets 2>/dev/null | jq -r '. | length' 2>/dev/null || echo 'N/A')
+          echo "✅ Private Subnets: $PRIVATE_SUBNETS subnets"
+          
+          ASSETS_BUCKET=$(terraform output -raw assets_bucket_id 2>/dev/null || echo 'Not available')
+          echo "✅ S3 Assets Bucket: $ASSETS_BUCKET"
+          
+          BACKUPS_BUCKET=$(terraform output -raw backups_bucket_id 2>/dev/null || echo 'Not available')
+          echo "✅ S3 Backups Bucket: $BACKUPS_BUCKET"
+          
+          # Show organization outputs if available
+          ORG_ID=$(terraform output -raw organization_id 2>/dev/null || echo 'Not available')
+          echo "✅ Organization ID: $ORG_ID"
+          
+          SECURITY_OU=$(terraform output -raw security_ou_id 2>/dev/null || echo 'Not available')
+          echo "✅ Security OU ID: $SECURITY_OU"
 
       - name: Terraform destroy
         id: destroy
