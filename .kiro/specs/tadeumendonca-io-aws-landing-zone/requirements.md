@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This specification defines the infrastructure requirements for a scalable AWS foundation and web application hosting platform suitable for a one-man digital startup that can grow into an enterprise. The system shall provide a secure organizational foundation with AWS Organizations and Single Sign-On (SSO), followed by secure, reliable hosting for containerized web applications with the ability to scale as the business grows. The primary deployment region is sa-east-1 (South America - São Paulo) with us-east-1 (US East - N. Virginia) used for global services.
+This specification defines the infrastructure requirements for the Tadeumendonca.io AWS Landing Zone - a scalable AWS foundation and web application hosting platform suitable for a one-man digital startup that can grow into an enterprise. The system shall provide a secure organizational foundation with AWS Organizations and Single Sign-On (SSO), followed by secure, reliable hosting for containerized web applications with the ability to scale as the business grows. The primary deployment region is sa-east-1 (South America - São Paulo) with us-east-1 (US East - N. Virginia) used for global services.
 
 ## Glossary
 

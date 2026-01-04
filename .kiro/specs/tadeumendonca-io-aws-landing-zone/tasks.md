@@ -1,8 +1,8 @@
-# Implementation Plan: Web Application Hosting Infrastructure
+# Implementation Plan: Tadeumendonca.io AWS Landing Zone
 
 ## Overview
 
-This implementation plan breaks down the web application hosting infrastructure into discrete, manageable tasks that build incrementally. The approach follows Infrastructure as Code principles using Terraform for AWS resources and Helm/Kubernetes manifests for application-layer components. Each task builds upon previous work to create a complete, production-ready platform.
+This implementation plan breaks down the AWS landing zone infrastructure into discrete, manageable tasks that build incrementally. The approach follows a foundation-first strategy with AWS Organizations, Account Factory for Terraform (AFT), and AWS SSO, followed by Infrastructure as Code principles using Terraform for AWS resources and Helm/Kubernetes manifests for application-layer components. Each task builds upon previous work to create a complete, production-ready platform.
 
 ## Tasks
 
