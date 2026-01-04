@@ -19,7 +19,7 @@ locals {
 # Organization Admin Permission Set
 resource "aws_ssoadmin_permission_set" "organization_admin" {
   provider = aws.sso
-  
+
   name             = "OrganizationAdmin"
   description      = "Full administrative access across all accounts in the organization"
   instance_arn     = local.sso_instance_arn
@@ -35,7 +35,7 @@ resource "aws_ssoadmin_permission_set" "organization_admin" {
 # Production Admin Permission Set
 resource "aws_ssoadmin_permission_set" "production_admin" {
   provider = aws.sso
-  
+
   name             = "ProductionAdmin"
   description      = "Administrative access to production accounts with enhanced security"
   instance_arn     = local.sso_instance_arn
@@ -51,7 +51,7 @@ resource "aws_ssoadmin_permission_set" "production_admin" {
 # Developer Access Permission Set
 resource "aws_ssoadmin_permission_set" "developer_access" {
   provider = aws.sso
-  
+
   name             = "DeveloperAccess"
   description      = "Developer access to staging and development resources"
   instance_arn     = local.sso_instance_arn
@@ -67,7 +67,7 @@ resource "aws_ssoadmin_permission_set" "developer_access" {
 # Read Only Permission Set
 resource "aws_ssoadmin_permission_set" "read_only" {
   provider = aws.sso
-  
+
   name             = "ReadOnly"
   description      = "Read-only access across all accounts for auditing and monitoring"
   instance_arn     = local.sso_instance_arn
@@ -87,7 +87,7 @@ resource "aws_ssoadmin_permission_set" "read_only" {
 # Organization Admin - Full AWS Access
 resource "aws_ssoadmin_managed_policy_attachment" "organization_admin_policy" {
   provider = aws.sso
-  
+
   instance_arn       = local.sso_instance_arn
   managed_policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
   permission_set_arn = aws_ssoadmin_permission_set.organization_admin.arn
@@ -96,7 +96,7 @@ resource "aws_ssoadmin_managed_policy_attachment" "organization_admin_policy" {
 # Production Admin - Power User Access (no IAM user management)
 resource "aws_ssoadmin_managed_policy_attachment" "production_admin_policy" {
   provider = aws.sso
-  
+
   instance_arn       = local.sso_instance_arn
   managed_policy_arn = "arn:aws:iam::aws:policy/PowerUserAccess"
   permission_set_arn = aws_ssoadmin_permission_set.production_admin.arn
@@ -105,7 +105,7 @@ resource "aws_ssoadmin_managed_policy_attachment" "production_admin_policy" {
 # Developer Access - Power User Access
 resource "aws_ssoadmin_managed_policy_attachment" "developer_access_policy" {
   provider = aws.sso
-  
+
   instance_arn       = local.sso_instance_arn
   managed_policy_arn = "arn:aws:iam::aws:policy/PowerUserAccess"
   permission_set_arn = aws_ssoadmin_permission_set.developer_access.arn
@@ -114,7 +114,7 @@ resource "aws_ssoadmin_managed_policy_attachment" "developer_access_policy" {
 # Read Only - Read Only Access
 resource "aws_ssoadmin_managed_policy_attachment" "read_only_policy" {
   provider = aws.sso
-  
+
   instance_arn       = local.sso_instance_arn
   managed_policy_arn = "arn:aws:iam::aws:policy/ReadOnlyAccess"
   permission_set_arn = aws_ssoadmin_permission_set.read_only.arn
@@ -127,7 +127,7 @@ resource "aws_ssoadmin_managed_policy_attachment" "read_only_policy" {
 # Production Admin - Additional IAM permissions for specific tasks
 resource "aws_ssoadmin_permission_set_inline_policy" "production_admin_iam" {
   provider = aws.sso
-  
+
   inline_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -219,8 +219,8 @@ resource "aws_cloudtrail" "sso_audit_trail" {
 
   # Focus on management events for SSO auditing
   event_selector {
-    read_write_type                   = "All"
-    include_management_events         = true
+    read_write_type                  = "All"
+    include_management_events        = true
     exclude_management_event_sources = []
   }
 

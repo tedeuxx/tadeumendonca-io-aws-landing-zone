@@ -15,8 +15,8 @@ provider "aws" {
 
 # AWS Provider for SSO resources (must be us-east-1)
 provider "aws" {
-  alias  = "sso"
-  region = "us-east-1"
+  alias   = "sso"
+  region  = "us-east-1"
   profile = var.aws_profile != "" ? var.aws_profile : null
   default_tags {
     tags = {
