@@ -2,10 +2,7 @@
 # AWS SSO (IDENTITY CENTER)
 ############################
 
-# Enable AWS SSO (Identity Center)
-resource "aws_ssoadmin_instances" "main" {}
-
-# Get the SSO instance
+# Get the SSO instance (AWS SSO is enabled automatically in organizations)
 data "aws_ssoadmin_instances" "main" {}
 
 locals {
@@ -232,11 +229,7 @@ resource "aws_cloudtrail" "sso_audit_trail" {
   event_selector {
     read_write_type           = "All"
     include_management_events = true
-
-    data_resource {
-      type   = "AWS::SSO::*"
-      values = ["arn:aws:sso:::*"]
-    }
+    exclude_management_event_sources = []
   }
 
   tags = {
