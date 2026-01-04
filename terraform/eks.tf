@@ -64,12 +64,6 @@ module "eks" {
       create_launch_template = false
       launch_template_name   = ""
 
-      # Security group rules (only add remote access if SSH key is provided)
-      remote_access = var.eks_node_ssh_key_name != "" ? {
-        ec2_ssh_key               = var.eks_node_ssh_key_name
-        source_security_group_ids = [aws_security_group.eks_remote_access.id]
-      } : {}
-
       tags = {
         Name        = "${local.customer_workload_name}-main-node-group"
         Environment = var.customer_workload_environment
@@ -128,34 +122,6 @@ resource "aws_kms_alias" "eks" {
 ############################
 # SECURITY GROUPS
 ############################
-
-# Security group for remote access to EKS nodes
-resource "aws_security_group" "eks_remote_access" {
-  name_prefix = "${local.customer_workload_name}-eks-remote-access"
-  vpc_id      = module.vpc.vpc_id
-
-  ingress {
-    description = "SSH access for EKS nodes"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [module.vpc.vpc_cidr_block]
-  }
-
-  egress {
-    description = "All outbound traffic"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name        = "${local.customer_workload_name}-eks-remote-access"
-    Environment = var.customer_workload_environment
-    Purpose     = "eks-remote-access"
-  }
-}
 
 ############################
 # IAM ROLES FOR SERVICE ACCOUNTS (IRSA)
