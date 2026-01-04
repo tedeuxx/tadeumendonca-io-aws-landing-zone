@@ -21,10 +21,12 @@ module "eks" {
   control_plane_subnet_ids = module.vpc.private_subnets
 
   # Cluster encryption
-  cluster_encryption_config = {
-    provider_key_arn = aws_kms_key.eks.arn
-    resources        = ["secrets"]
-  }
+  cluster_encryption_config = [
+    {
+      provider_key_arn = aws_kms_key.eks.arn
+      resources        = ["secrets"]
+    }
+  ]
 
   # EKS Managed Node Groups
   eks_managed_node_groups = {
@@ -62,11 +64,11 @@ module "eks" {
       create_launch_template = false
       launch_template_name   = ""
 
-      # Security group rules
-      remote_access = {
+      # Security group rules (only add remote access if SSH key is provided)
+      remote_access = var.eks_node_ssh_key_name != "" ? {
         ec2_ssh_key               = var.eks_node_ssh_key_name
         source_security_group_ids = [aws_security_group.eks_remote_access.id]
-      }
+      } : {}
 
       tags = {
         Name        = "${local.customer_workload_name}-main-node-group"
@@ -95,22 +97,16 @@ module "eks" {
   # Enable IRSA (IAM Roles for Service Accounts)
   enable_irsa = true
 
-  # Cluster access entries
-  access_entries = {
-    admin = {
-      kubernetes_groups = []
-      principal_arn     = "arn:aws:iam::${local.aws_account_id}:root"
+  # Manage aws-auth configmap
+  manage_aws_auth_configmap = true
 
-      policy_associations = {
-        admin = {
-          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
-          access_scope = {
-            type = "cluster"
-          }
-        }
-      }
-    }
-  }
+  aws_auth_roles = [
+    {
+      rolearn  = "arn:aws:iam::${local.aws_account_id}:root"
+      username = "admin"
+      groups   = ["system:masters"]
+    },
+  ]
 
   tags = {
     Name        = "${local.customer_workload_name}-eks"
