@@ -48,18 +48,3 @@ variable "customer_workload_environment" {
   }
 }
 
-############################
-# SSO VARIABLES
-############################
-
-variable "sso_admin_user_id" {
-  description = "SSO User ID for organization admin access"
-  type        = string
-  default     = "" # Will be populated after SSO user creation
-}
-
-variable "sso_readonly_group_id" {
-  description = "SSO Group ID for read-only access"
-  type        = string
-  default     = "" # Will be populated after SSO group creation
-}
