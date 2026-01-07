@@ -14,14 +14,14 @@ module "vpc" {
   azs = slice(local.aws_availability_zones, 0, 2)
 
   # Subnet configuration as per design
-  public_subnets   = ["10.0.1.0/24", "10.0.2.0/24"]       # For ALB, WAF, NAT Gateway
-  private_subnets  = ["10.0.10.0/24", "10.0.20.0/24"]     # For EKS Fargate pods
-  database_subnets = ["10.0.100.0/24", "10.0.200.0/24"]   # For DocumentDB
+  public_subnets   = ["10.0.1.0/24", "10.0.2.0/24"]     # For ALB, WAF, NAT Gateway
+  private_subnets  = ["10.0.10.0/24", "10.0.20.0/24"]   # For EKS Fargate pods
+  database_subnets = ["10.0.100.0/24", "10.0.200.0/24"] # For DocumentDB
 
   # NAT Gateway configuration (single NAT for cost optimization)
   enable_nat_gateway     = true
   enable_vpn_gateway     = false
-  single_nat_gateway     = true  # Cost optimization: single NAT gateway
+  single_nat_gateway     = true # Cost optimization: single NAT gateway
   one_nat_gateway_per_az = false
 
   # DNS configuration
@@ -33,9 +33,9 @@ module "vpc" {
   database_subnet_group_name   = "${local.customer_workload_name}-db"
 
   # VPC Flow Logs for security monitoring
-  enable_flow_log                      = true
-  create_flow_log_cloudwatch_iam_role  = true
-  create_flow_log_cloudwatch_log_group = true
+  enable_flow_log                                 = true
+  create_flow_log_cloudwatch_iam_role             = true
+  create_flow_log_cloudwatch_log_group            = true
   flow_log_cloudwatch_log_group_retention_in_days = 30
 
   # Tags for the VPC
@@ -50,14 +50,14 @@ module "vpc" {
   # Public subnet tags (for ALB and internet-facing resources)
   public_subnet_tags = {
     Type                     = "public"
-    "kubernetes.io/role/elb" = "1"  # For AWS Load Balancer Controller
+    "kubernetes.io/role/elb" = "1" # For AWS Load Balancer Controller
     Tier                     = "public"
   }
 
   # Private subnet tags (for EKS Fargate pods)
   private_subnet_tags = {
     Type                              = "private"
-    "kubernetes.io/role/internal-elb" = "1"  # For internal load balancers
+    "kubernetes.io/role/internal-elb" = "1" # For internal load balancers
     Tier                              = "application"
   }
 
