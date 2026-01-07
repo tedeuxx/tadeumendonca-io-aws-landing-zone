@@ -68,68 +68,73 @@ module "vpc" {
   }
 }
 
-# VPC Endpoints for cost optimization and security
-# S3 VPC Endpoint (Gateway endpoint - no cost)
-resource "aws_vpc_endpoint" "s3" {
-  vpc_id            = module.vpc.vpc_id
-  service_name      = "com.amazonaws.${local.aws_region}.s3"
-  vpc_endpoint_type = "Gateway"
-  route_table_ids   = concat(module.vpc.private_route_table_ids, module.vpc.public_route_table_ids)
+# VPC Endpoints using terraform-aws-modules/vpc/aws endpoints feature
+module "vpc_endpoints" {
+  source  = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
+  version = "~> 5.0"
 
-  tags = {
-    Name        = "${local.customer_workload_name}-s3-endpoint"
-    Environment = var.customer_workload_environment
-    Owner       = var.customer_workload_owner
-    Service     = "s3"
+  vpc_id = module.vpc.vpc_id
+
+  endpoints = {
+    s3 = {
+      service         = "s3"
+      service_type    = "Gateway"
+      route_table_ids = concat(module.vpc.private_route_table_ids, module.vpc.public_route_table_ids)
+      tags = {
+        Name        = "${local.customer_workload_name}-s3-endpoint"
+        Environment = var.customer_workload_environment
+        Owner       = var.customer_workload_owner
+        Service     = "s3"
+      }
+    }
+
+    ecr_dkr = {
+      service             = "ecr.dkr"
+      service_type        = "Interface"
+      subnet_ids          = module.vpc.private_subnets
+      security_group_ids  = [aws_security_group.vpc_endpoints.id]
+      private_dns_enabled = true
+      tags = {
+        Name        = "${local.customer_workload_name}-ecr-dkr-endpoint"
+        Environment = var.customer_workload_environment
+        Owner       = var.customer_workload_owner
+        Service     = "ecr-dkr"
+      }
+    }
+
+    ecr_api = {
+      service             = "ecr.api"
+      service_type        = "Interface"
+      subnet_ids          = module.vpc.private_subnets
+      security_group_ids  = [aws_security_group.vpc_endpoints.id]
+      private_dns_enabled = true
+      tags = {
+        Name        = "${local.customer_workload_name}-ecr-api-endpoint"
+        Environment = var.customer_workload_environment
+        Owner       = var.customer_workload_owner
+        Service     = "ecr-api"
+      }
+    }
+
+    logs = {
+      service             = "logs"
+      service_type        = "Interface"
+      subnet_ids          = module.vpc.private_subnets
+      security_group_ids  = [aws_security_group.vpc_endpoints.id]
+      private_dns_enabled = true
+      tags = {
+        Name        = "${local.customer_workload_name}-logs-endpoint"
+        Environment = var.customer_workload_environment
+        Owner       = var.customer_workload_owner
+        Service     = "cloudwatch-logs"
+      }
+    }
   }
-}
-
-# ECR VPC Endpoints for EKS Fargate (reduces NAT Gateway costs)
-resource "aws_vpc_endpoint" "ecr_dkr" {
-  vpc_id              = module.vpc.vpc_id
-  service_name        = "com.amazonaws.${local.aws_region}.ecr.dkr"
-  vpc_endpoint_type   = "Interface"
-  subnet_ids          = module.vpc.private_subnets
-  security_group_ids  = [aws_security_group.vpc_endpoints.id]
-  private_dns_enabled = true
 
   tags = {
-    Name        = "${local.customer_workload_name}-ecr-dkr-endpoint"
     Environment = var.customer_workload_environment
     Owner       = var.customer_workload_owner
-    Service     = "ecr-dkr"
-  }
-}
-
-resource "aws_vpc_endpoint" "ecr_api" {
-  vpc_id              = module.vpc.vpc_id
-  service_name        = "com.amazonaws.${local.aws_region}.ecr.api"
-  vpc_endpoint_type   = "Interface"
-  subnet_ids          = module.vpc.private_subnets
-  security_group_ids  = [aws_security_group.vpc_endpoints.id]
-  private_dns_enabled = true
-
-  tags = {
-    Name        = "${local.customer_workload_name}-ecr-api-endpoint"
-    Environment = var.customer_workload_environment
-    Owner       = var.customer_workload_owner
-    Service     = "ecr-api"
-  }
-}
-
-# CloudWatch Logs VPC Endpoint for EKS logging
-resource "aws_vpc_endpoint" "logs" {
-  vpc_id              = module.vpc.vpc_id
-  service_name        = "com.amazonaws.${local.aws_region}.logs"
-  vpc_endpoint_type   = "Interface"
-  subnet_ids          = module.vpc.private_subnets
-  security_group_ids  = [aws_security_group.vpc_endpoints.id]
-  private_dns_enabled = true
-
-  tags = {
-    Name        = "${local.customer_workload_name}-logs-endpoint"
-    Environment = var.customer_workload_environment
-    Owner       = var.customer_workload_owner
-    Service     = "cloudwatch-logs"
+    Project     = "aws-landing-zone"
+    Terraform   = "true"
   }
 }
