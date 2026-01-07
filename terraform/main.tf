@@ -167,7 +167,7 @@ module "logs_bucket" {
           storage_class = "STANDARD_IA"
         },
         {
-          days          = 90
+          days          = 60
           storage_class = "GLACIER"
         }
       ]
