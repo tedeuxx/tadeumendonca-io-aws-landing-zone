@@ -17,8 +17,10 @@ output "aws_availability_zones" {
 }
 
 ############################
-# AWS Organizations
+# AWS Organizations - Phase 2 Only
+# Temporarily disabled for Phase 1 (single account)
 ############################
+/*
 output "organization_id" {
   description = "AWS Organization ID"
   value       = module.aws_organizations.organization_id
@@ -49,32 +51,17 @@ output "production_ou_id" {
   value       = module.aws_organizations.organizational_units["production"].id
 }
 
-/*
-# Account outputs - Temporarily disabled since accounts are not created yet
-output "security_account_id" {
-  description = "Security Account ID"
-  value       = module.aws_organizations.accounts["security"].id
-}
-
-output "log_archive_account_id" {
-  description = "Log Archive Account ID"
-  value       = module.aws_organizations.accounts["log_archive"].id
-}
-
-output "audit_account_id" {
-  description = "Audit Account ID"
-  value       = module.aws_organizations.accounts["audit"].id
-}
-*/
-
 output "cloudtrail_bucket_name" {
   description = "Organization CloudTrail S3 Bucket Name"
   value       = aws_s3_bucket.cloudtrail_bucket.bucket
 }
+*/
 
 ############################
-# AFT (Account Factory for Terraform)
+# AFT (Account Factory for Terraform) - Phase 2 Only
+# Temporarily disabled for Phase 1 (single account)
 ############################
+/*
 output "aft_account_requests_bucket_name" {
   description = "AFT Account Requests S3 Bucket Name"
   value       = aws_s3_bucket.aft_account_requests.bucket
@@ -84,6 +71,7 @@ output "aft_account_provisioning_role_arn" {
   description = "AFT Account Provisioning Role ARN"
   value       = aws_iam_role.aft_account_provisioning_role.arn
 }
+*/
 
 /*
 ############################
@@ -180,32 +168,42 @@ output "cluster_autoscaler_role_arn" {
 ############################
 output "vpc_id" {
   description = "VPC ID"
-  value       = local.vpc_id
+  value       = module.vpc.vpc_id
 }
 
 output "vpc_cidr_block" {
   description = "VPC CIDR block"
-  value       = local.vpc_cidr_block
+  value       = module.vpc.vpc_cidr_block
 }
 
 output "public_subnets" {
   description = "Public subnet IDs"
-  value       = local.public_subnets
+  value       = module.vpc.public_subnets
 }
 
 output "private_subnets" {
   description = "Private subnet IDs"
-  value       = local.private_subnets
+  value       = module.vpc.private_subnets
 }
 
 output "database_subnets" {
   description = "Database subnet IDs"
-  value       = local.database_subnets
+  value       = module.vpc.database_subnets
 }
 
 output "database_subnet_group_name" {
   description = "Database subnet group name"
-  value       = aws_db_subnet_group.database.name
+  value       = module.vpc.database_subnet_group_name
+}
+
+output "nat_gateway_ids" {
+  description = "NAT Gateway IDs"
+  value       = module.vpc.natgw_ids
+}
+
+output "internet_gateway_id" {
+  description = "Internet Gateway ID"
+  value       = module.vpc.igw_id
 }
 
 ############################
@@ -216,9 +214,19 @@ output "alb_security_group_id" {
   value       = aws_security_group.alb.id
 }
 
-output "rds_security_group_id" {
-  description = "RDS security group ID"
-  value       = aws_security_group.rds_new.id
+output "eks_fargate_security_group_id" {
+  description = "EKS Fargate security group ID"
+  value       = aws_security_group.eks_fargate.id
+}
+
+output "documentdb_security_group_id" {
+  description = "DocumentDB security group ID"
+  value       = aws_security_group.documentdb.id
+}
+
+output "vpc_endpoints_security_group_id" {
+  description = "VPC Endpoints security group ID"
+  value       = aws_security_group.vpc_endpoints.id
 }
 
 ############################

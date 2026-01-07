@@ -1,4 +1,4 @@
-aws_region                    = "sa-east-1"
+aws_region                    = "us-east-1"
 aws_profile                   = "tadeumendonca-vpc"
 customer_workload_name        = "tadeumendonca.io"
 customer_workload_owner       = "tadeu.mendonca"

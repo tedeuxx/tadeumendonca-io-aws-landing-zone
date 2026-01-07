@@ -2,113 +2,10 @@
 # MAIN INFRASTRUCTURE
 ############################
 
-# VPC Module using official AWS community module
-# Using existing VPC to avoid VpcLimitExceeded error
-data "aws_vpc" "existing" {
-  # Get the default VPC or specify a specific VPC ID
-  default = true
+# Random ID for resource naming
+resource "random_id" "bucket_suffix" {
+  byte_length = 4
 }
-
-data "aws_subnets" "existing_public" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.existing.id]
-  }
-
-  filter {
-    name   = "map-public-ip-on-launch"
-    values = ["true"]
-  }
-}
-
-data "aws_subnets" "existing_private" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.existing.id]
-  }
-
-  filter {
-    name   = "map-public-ip-on-launch"
-    values = ["false"]
-  }
-}
-
-# Create a local reference to mimic the VPC module structure
-locals {
-  vpc_id                      = data.aws_vpc.existing.id
-  vpc_cidr_block              = data.aws_vpc.existing.cidr_block
-  public_subnets              = data.aws_subnets.existing_public.ids
-  private_subnets             = length(data.aws_subnets.existing_private.ids) > 0 ? data.aws_subnets.existing_private.ids : data.aws_subnets.existing_public.ids
-  database_subnets            = length(data.aws_subnets.existing_private.ids) > 0 ? data.aws_subnets.existing_private.ids : data.aws_subnets.existing_public.ids
-  private_subnets_cidr_blocks = [for subnet_id in local.private_subnets : data.aws_subnet.private[subnet_id].cidr_block]
-}
-
-data "aws_subnet" "private" {
-  for_each = toset(local.private_subnets)
-  id       = each.value
-}
-
-# Create database subnet group manually since we're not using the VPC module
-resource "aws_db_subnet_group" "database" {
-  name       = "${local.customer_workload_name}-db-${random_id.bucket_suffix.hex}"
-  subnet_ids = local.database_subnets
-
-  tags = {
-    Name        = "${local.customer_workload_name}-db-subnet-group"
-    Environment = var.customer_workload_environment
-    Type        = "database"
-  }
-}
-
-# Comment out the VPC module to avoid VpcLimitExceeded
-/*
-module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 5.0"
-
-  name = "${local.customer_workload_name}-vpc"
-  cidr = "10.0.0.0/16"
-
-  azs              = slice(local.aws_availability_zones, 0, 2) # Use first 2 AZs
-  public_subnets   = ["10.0.1.0/24", "10.0.2.0/24"]
-  private_subnets  = ["10.0.10.0/24", "10.0.20.0/24"]
-  database_subnets = ["10.0.100.0/24", "10.0.200.0/24"]
-
-  # Enable NAT Gateway for private subnets (use single NAT to avoid EIP limits)
-  enable_nat_gateway     = true
-  enable_vpn_gateway     = false
-  single_nat_gateway     = true  # Use single NAT gateway to avoid EIP limit issues
-  one_nat_gateway_per_az = false # Disabled to use single NAT gateway
-
-  # Enable DNS
-  enable_dns_hostnames = true
-  enable_dns_support   = true
-
-  # Create database subnet group
-  create_database_subnet_group = true
-  database_subnet_group_name   = "${local.customer_workload_name}-db-${random_id.bucket_suffix.hex}"
-
-  # Tags
-  tags = {
-    Name        = "${local.customer_workload_name}-vpc"
-    Environment = var.customer_workload_environment
-  }
-
-  public_subnet_tags = {
-    Type                     = "public"
-    "kubernetes.io/role/elb" = "1"
-  }
-
-  private_subnet_tags = {
-    Type                              = "private"
-    "kubernetes.io/role/internal-elb" = "1"
-  }
-
-  database_subnet_tags = {
-    Type = "database"
-  }
-}
-*/
 
 # S3 Buckets for application assets and backups
 module "assets_bucket" {
@@ -131,7 +28,7 @@ module "assets_bucket" {
     }
   }
 
-  # Block public access
+  # Block public access (will be configured for CloudFront later)
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
@@ -140,7 +37,9 @@ module "assets_bucket" {
   tags = {
     Name        = "${local.customer_workload_name}-assets"
     Environment = var.customer_workload_environment
+    Owner       = var.customer_workload_owner
     Purpose     = "application-assets"
+    Terraform   = "true"
   }
 }
 
@@ -221,7 +120,9 @@ module "backups_bucket" {
   tags = {
     Name        = "${local.customer_workload_name}-backups"
     Environment = var.customer_workload_environment
+    Owner       = var.customer_workload_owner
     Purpose     = "application-backups"
+    Terraform   = "true"
   }
 }
 
@@ -259,78 +160,5 @@ resource "aws_s3_bucket_lifecycle_configuration" "backups_bucket_lifecycle" {
     noncurrent_version_expiration {
       noncurrent_days = 90
     }
-  }
-}
-
-# Random ID for bucket naming
-resource "random_id" "bucket_suffix" {
-  byte_length = 4
-}
-
-############################
-# SECURITY GROUPS
-############################
-
-# Security group for Application Load Balancer
-resource "aws_security_group" "alb" {
-  name_prefix = "${local.customer_workload_name}-alb-"
-  vpc_id      = local.vpc_id
-  description = "Security group for Application Load Balancer"
-
-  # Allow HTTP from internet
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "HTTP from internet"
-  }
-
-  # Allow HTTPS from internet
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "HTTPS from internet"
-  }
-
-  # Allow all outbound traffic
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "All outbound traffic"
-  }
-
-  tags = {
-    Name        = "${local.customer_workload_name}-alb-sg"
-    Environment = var.customer_workload_environment
-    Purpose     = "application-load-balancer"
-  }
-}
-
-# Security group for RDS PostgreSQL
-resource "aws_security_group" "rds_new" {
-  name_prefix = "${local.customer_workload_name}-rds-v2-"
-  vpc_id      = local.vpc_id
-  description = "Security group for RDS PostgreSQL (v2 - temporary without EKS)"
-
-  # Temporary: Allow PostgreSQL from private subnets (until EKS is re-enabled)
-  ingress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = local.private_subnets_cidr_blocks
-    description = "PostgreSQL from private subnets (temporary)"
-  }
-
-  # No outbound rules needed for RDS
-
-  tags = {
-    Name        = "${local.customer_workload_name}-rds-v2-sg"
-    Environment = var.customer_workload_environment
-    Purpose     = "rds-database"
   }
 }
