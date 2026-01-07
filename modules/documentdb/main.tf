@@ -81,7 +81,7 @@ resource "aws_docdb_cluster" "this" {
   engine                          = var.engine
   engine_version                  = var.engine_version
   master_username                 = var.master_username
-  master_password                 = local.master_password
+  master_password                 = var.manage_master_user_password ? null : local.master_password
   manage_master_user_password     = var.manage_master_user_password
   port                            = var.port
   vpc_security_group_ids          = var.vpc_security_group_ids
