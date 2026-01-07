@@ -181,38 +181,6 @@ jobs:
             echo "This might indicate a partial deployment or configuration issue"
             terraform output 2>/dev/null || echo "No outputs found"
           fi
-          
-          echo ""
-          echo "📋 Infrastructure Summary:"
-          
-          # Phase 1 Infrastructure Outputs
-          VPC_ID=$(terraform output -raw vpc_id 2>/dev/null || echo 'Not available')
-          echo "✅ VPC ID: $VPC_ID"
-          
-          PUBLIC_SUBNETS=$(terraform output -json public_subnets 2>/dev/null | jq -r '. | length' 2>/dev/null || echo 'N/A')
-          echo "✅ Public Subnets: $PUBLIC_SUBNETS subnets"
-          
-          PRIVATE_SUBNETS=$(terraform output -json private_subnets 2>/dev/null | jq -r '. | length' 2>/dev/null || echo 'N/A')
-          echo "✅ Private Subnets: $PRIVATE_SUBNETS subnets"
-          
-          DATABASE_SUBNETS=$(terraform output -json database_subnets 2>/dev/null | jq -r '. | length' 2>/dev/null || echo 'N/A')
-          echo "✅ Database Subnets: $DATABASE_SUBNETS subnets"
-          
-          ASSETS_BUCKET=$(terraform output -raw assets_bucket_id 2>/dev/null || echo 'Not available')
-          echo "✅ S3 Assets Bucket: $ASSETS_BUCKET"
-          
-          BACKUPS_BUCKET=$(terraform output -raw backups_bucket_id 2>/dev/null || echo 'Not available')
-          echo "✅ S3 Backups Bucket: $BACKUPS_BUCKET"
-          
-          NAT_GATEWAY=$(terraform output -json nat_gateway_ids 2>/dev/null | jq -r '. | length' 2>/dev/null || echo 'N/A')
-          echo "✅ NAT Gateways: $NAT_GATEWAY"
-          
-          IGW_ID=$(terraform output -raw internet_gateway_id 2>/dev/null || echo 'Not available')
-          echo "✅ Internet Gateway: $IGW_ID"
-          
-          echo ""
-          echo "📊 Phase 1 Status: Network Infrastructure Deployed"
-          echo "🚀 Ready for: Task 3 (S3 Storage), Task 4 (DocumentDB), Task 5 (Certificates)"
 
       - name: Terraform destroy
         id: destroy
