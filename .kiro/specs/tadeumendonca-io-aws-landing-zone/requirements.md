@@ -37,7 +37,7 @@ This specification defines the infrastructure requirements for the Tadeumendonca
 2. THE Web_Application_Infrastructure SHALL leverage us-east-1 pricing advantages for 15% cost savings compared to other regions
 3. THE Certificate_Service SHALL use us-east-1 for ACM certificates to support global CloudFront distributions
 4. THE Web_Application_Infrastructure SHALL implement resource tagging for cost tracking and allocation
-5. THE Web_Application_Infrastructure SHALL use intelligent tiering for S3 storage to automatically optimize costs
+5. THE Web_Application_Infrastructure SHALL use standard lifecycle policies for S3 storage to automatically optimize costs without intelligent tiering overhead
 
 ### Requirement 2: Network Foundation and Security
 
@@ -167,8 +167,8 @@ This specification defines the infrastructure requirements for the Tadeumendonca
 
 1. THE Storage_Service SHALL provide S3 buckets for application assets and backups
 2. THE Storage_Service SHALL encrypt objects at rest and support versioning
-3. THE Storage_Service SHALL use intelligent tiering to automatically move infrequently accessed data to cheaper storage classes
-4. THE Storage_Service SHALL implement lifecycle policies for automated data management
+3. THE Storage_Service SHALL use standard lifecycle policies to automatically move data to cheaper storage classes based on predictable access patterns
+4. THE Storage_Service SHALL implement lifecycle policies for automated data management without intelligent tiering complexity
 5. THE Storage_Service SHALL provide separate buckets for different data types (assets, backups, logs)
 
 ### Requirement 11: Infrastructure Module Standards

@@ -105,6 +105,24 @@ output "backups_bucket_arn" {
   value       = module.backups_bucket.s3_bucket_arn
 }
 
+output "logs_bucket_id" {
+  description = "Logs S3 bucket ID"
+  value       = module.logs_bucket.s3_bucket_id
+}
+
+output "logs_bucket_arn" {
+  description = "Logs S3 bucket ARN"
+  value       = module.logs_bucket.s3_bucket_arn
+}
+
+############################
+# IAM
+############################
+output "vpc_flow_logs_role_arn" {
+  description = "VPC Flow Logs IAM role ARN"
+  value       = aws_iam_role.vpc_flow_logs_role.arn
+}
+
 ############################
 # Customer Resource Tags
 ############################

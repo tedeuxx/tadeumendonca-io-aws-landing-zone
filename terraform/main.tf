@@ -130,3 +130,65 @@ module "backups_bucket" {
     Terraform   = "true"
   }
 }
+
+module "logs_bucket" {
+  source  = "terraform-aws-modules/s3-bucket/aws"
+  version = "~> 4.0"
+
+  bucket = "${local.aws_account_id}-${local.customer_workload_name}-logs"
+
+  # Versioning
+  versioning = {
+    enabled = false
+  }
+
+  # Server-side encryption
+  server_side_encryption_configuration = {
+    rule = {
+      apply_server_side_encryption_by_default = {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+
+  # Lifecycle configuration
+  lifecycle_rule = [
+    {
+      id     = "logs_lifecycle"
+      status = "Enabled"
+
+      filter = {
+        prefix = ""
+      }
+
+      transition = [
+        {
+          days          = 30
+          storage_class = "STANDARD_IA"
+        },
+        {
+          days          = 90
+          storage_class = "GLACIER"
+        }
+      ]
+
+      expiration = {
+        days = 90 # 90 days retention for logs
+      }
+    }
+  ]
+
+  # Block public access
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+
+  tags = {
+    Name        = "${local.customer_workload_name}-logs"
+    Environment = var.customer_workload_environment
+    Owner       = var.customer_workload_owner
+    Purpose     = "infrastructure-logs"
+    Terraform   = "true"
+  }
+}
