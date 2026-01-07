@@ -6,7 +6,7 @@
 module "documentdb_production" {
   source = "../modules/documentdb"
 
-  cluster_identifier = "${local.customer_workload_name}-production"
+  cluster_identifier = "${replace(local.customer_workload_name, ".", "-")}-production"
   engine_version     = "4.0.0"
   master_username    = "docdb"
 
@@ -17,11 +17,11 @@ module "documentdb_production" {
   # Multi-AZ deployment with 2 instances for high availability
   instances = {
     1 = {
-      identifier     = "${local.customer_workload_name}-production-1"
+      identifier     = "${replace(local.customer_workload_name, ".", "-")}-production-1"
       instance_class = "db.t3.medium"
     }
     2 = {
-      identifier     = "${local.customer_workload_name}-production-2"
+      identifier     = "${replace(local.customer_workload_name, ".", "-")}-production-2"
       instance_class = "db.t3.medium"
     }
   }
@@ -32,7 +32,7 @@ module "documentdb_production" {
   preferred_maintenance_window = "sun:05:00-sun:06:00"
   deletion_protection          = true
   skip_final_snapshot          = false
-  final_snapshot_identifier    = "${local.customer_workload_name}-production-final-snapshot"
+  final_snapshot_identifier    = "${replace(local.customer_workload_name, ".", "-")}-production-final-snapshot"
 
   # Security configuration
   storage_encrypted = true
@@ -42,7 +42,7 @@ module "documentdb_production" {
 
   # Parameter group for production optimizations
   create_db_cluster_parameter_group      = true
-  db_cluster_parameter_group_name        = "${local.customer_workload_name}-production-params"
+  db_cluster_parameter_group_name        = "${replace(local.customer_workload_name, ".", "-")}-production-params"
   db_cluster_parameter_group_description = "DocumentDB cluster parameter group for production"
   db_cluster_parameter_group_family      = "docdb4.0"
   db_cluster_parameter_group_parameters = [
@@ -70,7 +70,7 @@ module "documentdb_production" {
 module "documentdb_staging" {
   source = "../modules/documentdb"
 
-  cluster_identifier = "${local.customer_workload_name}-staging"
+  cluster_identifier = "${replace(local.customer_workload_name, ".", "-")}-staging"
   engine_version     = "4.0.0"
   master_username    = "docdb"
 
@@ -81,7 +81,7 @@ module "documentdb_staging" {
   # Single instance for cost optimization
   instances = {
     1 = {
-      identifier     = "${local.customer_workload_name}-staging-1"
+      identifier     = "${replace(local.customer_workload_name, ".", "-")}-staging-1"
       instance_class = "db.t3.medium"
     }
   }
