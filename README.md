@@ -36,6 +36,25 @@ This repository documents and implements a long-term, cloud-native architecture 
 * [Terraform CLI](https://developer.hashicorp.com/terraform/downloads) (`>= 1.5`)
 * Git installed and access to clone this repository
 
+### 🔧 Developer Setup
+
+After cloning the repository, install Git hooks for automatic code formatting:
+
+```bash
+# Install Git hooks (run once after cloning)
+./scripts/install-git-hooks.sh
+```
+
+**What this does:**
+- Installs a pre-commit hook that automatically runs `terraform fmt`
+- Ensures all Terraform files are properly formatted before commits
+- Maintains consistent code style across all contributors
+
+**Usage:**
+- Hooks run automatically on `git commit`
+- Skip hook if needed: `git commit --no-verify`
+- Test hook manually: `.git/hooks/pre-commit`
+
 ---
 
 ### ✅ GitHub Setup (Pro Required)
@@ -96,6 +115,10 @@ tadeumendonca-io-aws-landing-zone/
 ├── .github/
 │   └── workflows/
 │       └── terraform.yml
+│
+├── scripts/
+│   ├── install-git-hooks.sh    # Setup Git hooks for developers
+│   └── pre-commit              # Pre-commit hook for terraform fmt
 │
 ├── terraform/
 │   ├── env/
