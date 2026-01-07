@@ -111,7 +111,7 @@ module "backups_bucket" {
       ]
 
       expiration = {
-        days = 2555  # 7 years retention
+        days = 2555 # 7 years retention
       }
     }
   ]
