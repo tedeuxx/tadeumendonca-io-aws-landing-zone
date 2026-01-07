@@ -49,6 +49,8 @@ output "production_ou_id" {
   value       = module.aws_organizations.organizational_units["production"].id
 }
 
+/*
+# Account outputs - Temporarily disabled since accounts are not created yet
 output "security_account_id" {
   description = "Security Account ID"
   value       = module.aws_organizations.accounts["security"].id
@@ -63,6 +65,7 @@ output "audit_account_id" {
   description = "Audit Account ID"
   value       = module.aws_organizations.accounts["audit"].id
 }
+*/
 
 output "cloudtrail_bucket_name" {
   description = "Organization CloudTrail S3 Bucket Name"
