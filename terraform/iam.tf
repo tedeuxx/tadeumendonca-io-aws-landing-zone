@@ -2,26 +2,6 @@
 # IAM POLICIES FOR S3 ACCESS
 ############################
 
-# Get current AWS account ID and region
-data "aws_caller_identity" "current" {}
-data "aws_region" "current" {}
-
-# ALB service account for access logs (region-specific)
-# Reference: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/enable-access-logging.html
-locals {
-  # ELB service account IDs by region
-  elb_service_account_id = {
-    us-east-1      = "127311923021"
-    us-east-2      = "033677994240"
-    us-west-1      = "027434742980"
-    us-west-2      = "797873946194"
-    eu-west-1      = "156460612806"
-    eu-central-1   = "054676820928"
-    ap-southeast-1 = "114774131450"
-    ap-northeast-1 = "582318560864"
-  }
-}
-
 # S3 bucket policy to allow ALB to write access logs
 resource "aws_s3_bucket_policy" "logs_bucket_policy" {
   bucket = module.logs_bucket.s3_bucket_id
@@ -33,7 +13,7 @@ resource "aws_s3_bucket_policy" "logs_bucket_policy" {
         Sid    = "AllowALBAccessLogs"
         Effect = "Allow"
         Principal = {
-          AWS = "arn:aws:iam::${local.elb_service_account_id[data.aws_region.current.name]}:root"
+          AWS = "arn:aws:iam::${local.elb_service_account_id[local.aws_region]}:root"
         }
         Action   = "s3:PutObject"
         Resource = "${module.logs_bucket.s3_bucket_arn}/alb-access-logs/*"
@@ -61,7 +41,7 @@ resource "aws_s3_bucket_policy" "logs_bucket_policy" {
         Sid    = "AllowALBAccessLogsCheck"
         Effect = "Allow"
         Principal = {
-          AWS = "arn:aws:iam::${local.elb_service_account_id[data.aws_region.current.name]}:root"
+          AWS = "arn:aws:iam::${local.elb_service_account_id[local.aws_region]}:root"
         }
         Action   = "s3:GetBucketAcl"
         Resource = module.logs_bucket.s3_bucket_arn
