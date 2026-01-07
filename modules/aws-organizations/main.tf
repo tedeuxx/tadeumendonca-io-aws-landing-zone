@@ -13,7 +13,7 @@ resource "aws_organizations_organization" "this" {
   enabled_policy_types         = var.enabled_policy_types
 
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false  # Temporarily disabled for AWS Support compliance
     ignore_changes = [
       # Ignore changes to these attributes if organization already exists
       aws_service_access_principals,
