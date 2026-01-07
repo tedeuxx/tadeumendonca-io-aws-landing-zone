@@ -48,3 +48,12 @@ variable "customer_workload_environment" {
   }
 }
 
+############################
+# Workload Environments
+############################
+variable "workload_environments" {
+  description = "List of environments to deploy workload resources for (e.g., staging, production)"
+  type        = list(string)
+  default     = []
+}
+

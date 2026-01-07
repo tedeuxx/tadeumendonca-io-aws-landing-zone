@@ -17,4 +17,30 @@ locals {
     ap-southeast-1 = "114774131450"
     ap-northeast-1 = "582318560864"
   }
+
+  # DocumentDB environment-specific configurations
+  documentdb_config = {
+    staging = {
+      instance_count         = 1
+      instance_class         = "db.t3.medium"
+      backup_retention       = 3
+      deletion_protection    = false
+      skip_final_snapshot    = true
+      cloudwatch_logs        = ["audit"]
+      create_parameter_group = false
+      cluster_tags           = {}
+    }
+    production = {
+      instance_count         = 2
+      instance_class         = "db.t3.medium"
+      backup_retention       = 7
+      deletion_protection    = true
+      skip_final_snapshot    = false
+      cloudwatch_logs        = ["audit", "profiler"]
+      create_parameter_group = true
+      cluster_tags = {
+        Backup = "required"
+      }
+    }
+  }
 }

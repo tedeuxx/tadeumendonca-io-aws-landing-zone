@@ -118,34 +118,36 @@ output "logs_bucket_arn" {
 ############################
 # DocumentDB
 ############################
-output "documentdb_production_cluster_endpoint" {
-  description = "Production DocumentDB cluster endpoint"
-  value       = module.documentdb_production.cluster_endpoint
+output "documentdb_cluster_endpoints" {
+  description = "DocumentDB cluster endpoints by environment"
+  value = {
+    for env in var.workload_environments :
+    env => module.documentdb[env].cluster_endpoint
+  }
 }
 
-output "documentdb_production_cluster_reader_endpoint" {
-  description = "Production DocumentDB cluster reader endpoint"
-  value       = module.documentdb_production.cluster_reader_endpoint
+output "documentdb_cluster_reader_endpoints" {
+  description = "DocumentDB cluster reader endpoints by environment"
+  value = {
+    for env in var.workload_environments :
+    env => module.documentdb[env].cluster_reader_endpoint
+  }
 }
 
-output "documentdb_production_cluster_id" {
-  description = "Production DocumentDB cluster ID"
-  value       = module.documentdb_production.cluster_id
+output "documentdb_cluster_ids" {
+  description = "DocumentDB cluster IDs by environment"
+  value = {
+    for env in var.workload_environments :
+    env => module.documentdb[env].cluster_id
+  }
 }
 
-output "documentdb_production_cluster_port" {
-  description = "Production DocumentDB cluster port"
-  value       = module.documentdb_production.cluster_port
-}
-
-output "documentdb_staging_cluster_endpoint" {
-  description = "Staging DocumentDB cluster endpoint"
-  value       = module.documentdb_staging.cluster_endpoint
-}
-
-output "documentdb_staging_cluster_id" {
-  description = "Staging DocumentDB cluster ID"
-  value       = module.documentdb_staging.cluster_id
+output "documentdb_cluster_ports" {
+  description = "DocumentDB cluster ports by environment"
+  value = {
+    for env in var.workload_environments :
+    env => module.documentdb[env].cluster_port
+  }
 }
 
 ############################
