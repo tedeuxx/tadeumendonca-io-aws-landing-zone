@@ -35,7 +35,7 @@ data "aws_route53_zone" "main" {
 # Data source for existing ACM certificate (must be in us-east-1 for CloudFront)
 data "aws_acm_certificate" "main" {
   provider    = aws.us_east_1
-  domain      = "*.${var.root_domain_name}"
+  domain      = var.root_domain_name
   statuses    = ["ISSUED"]
   most_recent = true
 }
