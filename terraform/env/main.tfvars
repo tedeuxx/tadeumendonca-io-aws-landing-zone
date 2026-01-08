@@ -6,7 +6,7 @@ customer_workload_sponsor     = "tadeu.mendonca"
 customer_workload_environment = "main"
 
 # Workload environments to deploy (empty for CI/CD - no databases initially)
-workload_environments = []
+workload_environments = ["staging"]
 
 # DocumentDB configuration (empty since no environments deployed in CI/CD)
 documentdb_config = {
