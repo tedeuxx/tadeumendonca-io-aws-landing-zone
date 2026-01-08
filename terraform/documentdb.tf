@@ -3,14 +3,19 @@
 ############################
 
 # DocumentDB Clusters (for_each based on environments)
+# Only create DocumentDB for environments that have configuration AND are in workload_environments
 module "documentdb" {
-  for_each = toset(var.workload_environments)
+  for_each = {
+    for env in var.workload_environments :
+    env => var.documentdb_config[env]
+    if contains(keys(var.documentdb_config), env)
+  }
 
   source = "../modules/documentdb"
 
   cluster_identifier = "${replace(local.customer_workload_name, ".", "-")}-${each.key}"
-  engine_version     = var.documentdb_config[each.key].engine_version
-  master_username    = var.documentdb_config[each.key].master_username
+  engine_version     = each.value.engine_version
+  master_username    = each.value.master_username
 
   # Network configuration
   subnet_ids             = module.vpc.database_subnets
@@ -18,20 +23,20 @@ module "documentdb" {
 
   # Dynamic instance configuration based on environment
   instances = {
-    for i in range(var.documentdb_config[each.key].instance_count) :
+    for i in range(each.value.instance_count) :
     tostring(i + 1) => {
       identifier     = "${replace(local.customer_workload_name, ".", "-")}-${each.key}-${i + 1}"
-      instance_class = var.documentdb_config[each.key].instance_class
+      instance_class = each.value.instance_class
     }
   }
 
   # Backup and maintenance configuration
-  backup_retention_period      = var.documentdb_config[each.key].backup_retention
-  preferred_backup_window      = var.documentdb_config[each.key].preferred_backup_window
-  preferred_maintenance_window = var.documentdb_config[each.key].preferred_maintenance_window
-  deletion_protection          = var.documentdb_config[each.key].deletion_protection
-  skip_final_snapshot          = var.documentdb_config[each.key].skip_final_snapshot
-  final_snapshot_identifier    = var.documentdb_config[each.key].skip_final_snapshot ? null : "${replace(local.customer_workload_name, ".", "-")}-${each.key}-final-snapshot"
+  backup_retention_period      = each.value.backup_retention
+  preferred_backup_window      = each.value.preferred_backup_window
+  preferred_maintenance_window = each.value.preferred_maintenance_window
+  deletion_protection          = each.value.deletion_protection
+  skip_final_snapshot          = each.value.skip_final_snapshot
+  final_snapshot_identifier    = each.value.skip_final_snapshot ? null : "${replace(local.customer_workload_name, ".", "-")}-${each.key}-final-snapshot"
 
   # Security configuration
   storage_encrypted = true
