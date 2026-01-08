@@ -57,6 +57,24 @@ variable "workload_environments" {
   default     = []
 }
 
+variable "applications" {
+  description = "Map of applications with their configuration"
+  type = map(object({
+    subdomain   = string
+    description = string
+  }))
+  default = {
+    webapp = {
+      subdomain   = "app"
+      description = "Main web application"
+    }
+    admin = {
+      subdomain   = "admin"
+      description = "Admin dashboard"
+    }
+  }
+}
+
 variable "documentdb_config" {
   description = "DocumentDB configuration for each environment"
   type = map(object({

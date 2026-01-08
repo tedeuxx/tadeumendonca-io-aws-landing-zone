@@ -5,6 +5,17 @@ customer_workload_owner       = "tadeu.mendonca"
 customer_workload_sponsor     = "tadeu.mendonca"
 customer_workload_environment = "main"
 
+# Workload environments to deploy
+workload_environments = ["staging", "production"]
+
+# Applications configuration with subdomain patterns
+applications = {
+  webapp = {
+    subdomain   = "app"
+    description = "Main web application"
+  }
+}
+
 # DocumentDB configuration for all environments
 documentdb_config = {
   staging = {

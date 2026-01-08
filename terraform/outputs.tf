@@ -165,3 +165,42 @@ output "customer_workload_name" {
   description = "Workload Name"
   value       = local.customer_workload_name
 }
+
+############################
+# Frontend S3 Buckets
+############################
+output "frontend_bucket_ids" {
+  description = "Frontend S3 bucket IDs by application and environment"
+  value = {
+    for key, combo in local.app_env_combinations :
+    key => module.frontend_bucket[key].s3_bucket_id
+  }
+}
+
+output "frontend_bucket_arns" {
+  description = "Frontend S3 bucket ARNs by application and environment"
+  value = {
+    for key, combo in local.app_env_combinations :
+    key => module.frontend_bucket[key].s3_bucket_arn
+  }
+}
+
+output "frontend_bucket_domains" {
+  description = "Frontend S3 bucket regional domain names by application and environment"
+  value = {
+    for key, combo in local.app_env_combinations :
+    key => module.frontend_bucket[key].s3_bucket_bucket_regional_domain_name
+  }
+}
+
+output "application_fqdns" {
+  description = "FQDN to S3 bucket mapping for applications"
+  value = {
+    for key, combo in local.app_env_combinations :
+    combo.fqdn => {
+      s3_bucket_name = module.frontend_bucket[key].s3_bucket_id
+      application    = combo.app_name
+      environment    = combo.environment
+    }
+  }
+}

@@ -212,81 +212,86 @@ Configure AWS Certificate Manager for SSL certificates and integrate with existi
 
 ---
 
-### Task 6: Application Load Balancer and WAF
+### Task 6: Frontend Hosting and API Gateway
 **Priority**: High  
-**Estimated Effort**: 5 hours  
-**Dependencies**: Task 2, Task 5
+**Estimated Effort**: 6 hours  
+**Dependencies**: Task 2, Task 3
 
 #### Description
-Deploy Application Load Balancers with AWS WAF v2 protection for both production and staging environments with SSL termination.
+Deploy CloudFront distributions with private S3 buckets using Origin Access Control (OAC) for frontend hosting, and API Gateway with VPC Link for backend API access to private EKS services.
 
 #### Acceptance Criteria
-1. Production ALB in public subnets with HTTPS listeners
-2. Staging ALB in public subnets with HTTPS listeners
-3. AWS WAF v2 with OWASP Top 10 protection rules
-4. SSL certificates from ACM attached to ALBs
-5. Health checks configured for target groups
-6. Security groups allowing HTTP/HTTPS from internet
-7. WAF logging enabled for security monitoring
+1. Private S3 buckets for frontend static assets per workload environment
+2. CloudFront distributions with OAC for secure S3 access per workload environment
+3. API Gateway (HTTP API) instances per workload environment
+4. VPC Link connecting API Gateway to private EKS services
+5. AWS WAF v2 protection for both CloudFront and API Gateway
+6. Custom error pages for SPA routing support
+7. Proper caching strategies for static assets and API calls
 
 #### Implementation Steps
-1. Create ALBs using terraform-aws-modules/alb/aws
-2. Configure AWS WAF v2 with security rules
-3. Set up HTTPS listeners with ACM certificates
-4. Configure target groups for EKS integration
-5. Enable access logging to S3
-6. Set up CloudWatch monitoring for ALB metrics
+1. Create private S3 buckets for frontend assets per environment
+2. Configure CloudFront distributions with Origin Access Control (OAC)
+3. Set up API Gateway HTTP APIs with VPC Link integration
+4. Configure AWS WAF v2 with security rules for both services
+5. Implement SPA routing support with custom error pages
+6. Set up CloudWatch monitoring and logging
 
 #### Validation
-- [ ] ALBs accessible via HTTPS with valid certificates
-- [ ] WAF blocking malicious requests (test with sample attacks)
-- [ ] Health checks working properly
-- [ ] Access logs being written to S3
-- [ ] CloudWatch metrics available
+- [ ] S3 buckets are private and accessible only via CloudFront OAC
+- [ ] CloudFront distributions serve static content globally
+- [ ] API Gateway connects to private EKS services via VPC Link
+- [ ] WAF blocking malicious requests on both services
+- [ ] SPA routing works correctly with custom error pages
+- [ ] CloudWatch logs and metrics available
 
 #### Files Modified
-- `terraform/alb.tf`
+- `terraform/cloudfront.tf`
+- `terraform/api-gateway.tf`
 - `terraform/waf.tf`
 - `terraform/outputs.tf`
 
 ---
 
-### Task 7: EKS Cluster Foundation
+### Task 7: Shared EKS Cluster Foundation
 **Priority**: Critical  
 **Estimated Effort**: 8 hours  
 **Dependencies**: Task 2, Task 3
 
 #### Description
-Deploy EKS clusters for production and staging using terraform-aws-modules/eks with Fargate-only configuration and proper RBAC setup.
+Deploy a shared EKS cluster for both staging and production workloads using terraform-aws-modules/eks with Fargate-only configuration, namespace isolation, and VPC Link integration for API Gateway access.
 
 #### Acceptance Criteria
-1. Production EKS cluster (v1.28) with Fargate profiles
-2. Staging EKS cluster (v1.28) with Fargate profiles
+1. Single shared EKS cluster (v1.28) with Fargate profiles for both environments
+2. Namespace isolation for staging and production workloads
 3. Fargate profiles for system and application namespaces
-4. AWS Load Balancer Controller installed and configured
+4. VPC Link for API Gateway integration instead of AWS Load Balancer Controller
 5. EBS CSI driver for persistent storage
-6. Proper RBAC configuration for service accounts
+6. Proper RBAC configuration for service accounts and namespace isolation
 7. CloudWatch logging enabled for control plane
+8. Private cluster endpoints accessible only from within VPC
 
 #### Implementation Steps
-1. Create EKS clusters using terraform-aws-modules/eks/aws
-2. Configure Fargate profiles for different namespaces
-3. Install AWS Load Balancer Controller via Helm
+1. Create shared EKS cluster using terraform-aws-modules/eks/aws
+2. Configure Fargate profiles for staging and production namespaces
+3. Set up VPC Link for API Gateway integration
 4. Set up EBS CSI driver for storage
-5. Configure RBAC for service accounts
+5. Configure RBAC for service accounts and namespace isolation
 6. Enable CloudWatch logging for audit and API server logs
+7. Configure private cluster endpoint access
 
 #### Validation
-- [ ] EKS clusters accessible via kubectl
-- [ ] Fargate profiles created and pods can be scheduled
-- [ ] AWS Load Balancer Controller working
+- [ ] EKS cluster accessible via kubectl
+- [ ] Fargate profiles created for both staging and production namespaces
+- [ ] VPC Link functional for API Gateway integration
 - [ ] EBS CSI driver functional
 - [ ] CloudWatch logs being collected
-- [ ] RBAC permissions working correctly
+- [ ] RBAC permissions working correctly with namespace isolation
+- [ ] Cluster endpoint is private and accessible only from VPC
 
 #### Files Modified
 - `terraform/eks.tf`
-- `terraform/eks-addons.tf`
+- `terraform/vpc-link.tf`
 - `terraform/outputs.tf`
 
 ---
@@ -297,25 +302,35 @@ Deploy EKS clusters for production and staging using terraform-aws-modules/eks w
 **Dependencies**: Task 7
 
 #### Description
-Install and configure Istio service mesh on both EKS clusters with automatic sidecar injection and mTLS enabled.
+Install and configure Istio service mesh on the shared EKS cluster with automatic sidecar injection, mTLS enabled, and namespace isolation for staging and production workloads.
 
 #### Acceptance Criteria
-1. Istio control plane (Istiod) installed on both clusters
-2. Automatic sidecar injection enabled for application namespaces
+1. Istio control plane (Istiod) installed on the shared EKS cluster
+2. Automatic sidecar injection enabled for application namespaces (staging and production)
 3. mTLS enabled for service-to-service communication
-4. Istio Gateway configured for ingress traffic
-5. Virtual Services configured for traffic routing
+4. Namespace isolation policies for staging and production workloads
+5. Virtual Services configured for traffic routing within namespaces
 6. Telemetry collection enabled for observability
 
 #### Implementation Steps
-1. Install Istio using Helm charts
-2. Configure automatic sidecar injection
+1. Install Istio using Helm charts on the shared cluster
+2. Configure automatic sidecar injection for staging and production namespaces
 3. Enable mTLS in STRICT mode
-4. Set up Istio Gateway for external traffic
-5. Configure Virtual Services for application routing
+4. Set up namespace isolation policies
+5. Configure Virtual Services for application routing within namespaces
 6. Enable telemetry collection for Prometheus integration
 
 #### Validation
+- [ ] Istio control plane pods running successfully
+- [ ] Automatic sidecar injection working in both namespaces
+- [ ] mTLS communication between services within namespaces
+- [ ] Namespace isolation preventing cross-environment communication
+- [ ] Telemetry data being collected
+- [ ] Kiali dashboard accessible with namespace separation
+
+#### Files Modified
+- `terraform/istio.tf`
+- `kubernetes/istio/`
 - [ ] Istio control plane pods running successfully
 - [ ] Automatic sidecar injection working
 - [ ] mTLS communication between services

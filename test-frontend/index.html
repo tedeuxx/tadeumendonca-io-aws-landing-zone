@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend Test - Landing Zone</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .status {
+            background: #e8f5e8;
+            border: 1px solid #4caf50;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .info {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 AWS Landing Zone Frontend</h1>
+        
+        <div class="status">
+            <strong>✅ Frontend Infrastructure Status:</strong> Active<br>
+            <strong>📦 Hosting:</strong> CloudFront + S3 with Origin Access Control (OAC)<br>
+            <strong>🔒 Security:</strong> Private S3 bucket, HTTPS redirect enabled
+        </div>
+
+        <div class="info">
+            <h3>Architecture Overview</h3>
+            <ul>
+                <li><strong>Frontend:</strong> CloudFront + Private S3 (per workload)</li>
+                <li><strong>Backend:</strong> API Gateway + Shared EKS (namespace isolation)</li>
+                <li><strong>Database:</strong> DocumentDB (per environment)</li>
+                <li><strong>Storage:</strong> S3 buckets for assets, backups, logs</li>
+            </ul>
+        </div>
+
+        <div class="info">
+            <h3>Environment Information</h3>
+            <p><strong>Environment:</strong> <span id="environment">Loading...</span></p>
+            <p><strong>CloudFront Domain:</strong> <span id="domain">Loading...</span></p>
+            <p><strong>Timestamp:</strong> <span id="timestamp"></span></p>
+        </div>
+    </div>
+
+    <script>
+        // Simple JavaScript to show this is a working SPA
+        document.getElementById('timestamp').textContent = new Date().toLocaleString();
+        
+        // Detect environment from domain (will be updated when custom domains are configured)
+        const domain = window.location.hostname;
+        let environment = 'Unknown';
+        
+        if (domain.includes('staging')) {
+            environment = 'Staging';
+        } else if (domain.includes('cloudfront.net')) {
+            environment = 'Development (CloudFront Default)';
+        } else {
+            environment = 'Production';
+        }
+        
+        document.getElementById('environment').textContent = environment;
+        document.getElementById('domain').textContent = domain;
+    </script>
+</body>
+</html>

@@ -14,7 +14,7 @@ module "vpc" {
   azs = slice(local.aws_availability_zones, 0, 2)
 
   # Subnet configuration as per design
-  public_subnets   = ["10.0.1.0/24", "10.0.2.0/24"]     # For ALB, WAF, NAT Gateway
+  public_subnets   = ["10.0.1.0/24", "10.0.2.0/24"]     # For NAT Gateway and future API Gateway
   private_subnets  = ["10.0.10.0/24", "10.0.20.0/24"]   # For EKS Fargate pods
   database_subnets = ["10.0.100.0/24", "10.0.200.0/24"] # For DocumentDB
 
