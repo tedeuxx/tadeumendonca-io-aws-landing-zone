@@ -42,14 +42,14 @@ module "documentdb" {
   storage_encrypted = true
 
   # Monitoring
-  enabled_cloudwatch_logs_exports = var.documentdb_config[each.key].cloudwatch_logs
+  enabled_cloudwatch_logs_exports = each.value.cloudwatch_logs
 
   # Parameter group configuration
-  create_db_cluster_parameter_group      = var.documentdb_config[each.key].create_parameter_group
-  db_cluster_parameter_group_name        = var.documentdb_config[each.key].create_parameter_group ? "${replace(local.customer_workload_name, ".", "-")}-${each.key}-${var.documentdb_config[each.key].db_cluster_parameter_group_name}" : null
-  db_cluster_parameter_group_description = var.documentdb_config[each.key].db_cluster_parameter_group_description
-  db_cluster_parameter_group_family      = var.documentdb_config[each.key].db_cluster_parameter_group_family
-  db_cluster_parameter_group_parameters  = var.documentdb_config[each.key].db_cluster_parameter_group_parameters
+  create_db_cluster_parameter_group      = each.value.create_parameter_group
+  db_cluster_parameter_group_name        = each.value.create_parameter_group ? "${replace(local.customer_workload_name, ".", "-")}-${each.key}-${each.value.db_cluster_parameter_group_name}" : null
+  db_cluster_parameter_group_description = each.value.db_cluster_parameter_group_description
+  db_cluster_parameter_group_family      = each.value.db_cluster_parameter_group_family
+  db_cluster_parameter_group_parameters  = each.value.db_cluster_parameter_group_parameters
 
   tags = {
     Name        = "${local.customer_workload_name}-${each.key}-documentdb"
@@ -59,5 +59,5 @@ module "documentdb" {
     Terraform   = "true"
   }
 
-  cluster_tags = var.documentdb_config[each.key].cluster_tags
+  cluster_tags = each.value.cluster_tags
 }
