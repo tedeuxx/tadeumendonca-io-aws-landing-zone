@@ -39,3 +39,25 @@ module "frontend_bucket" {
     Purpose     = "${each.value.environment}-${each.value.app_name}-frontend-hosting"
   })
 }
+
+# Upload test HTML file to frontend buckets
+resource "aws_s3_object" "index_html" {
+  for_each = local.app_env_combinations
+
+  bucket = module.frontend_bucket[each.key].s3_bucket_id
+  key    = "index.html"
+  source = "../test-frontend/index.html"
+
+  # Content type for HTML files
+  content_type = "text/html"
+
+  # ETag to detect file changes
+  etag = filemd5("../test-frontend/index.html")
+
+  tags = {
+    Name        = "index.html"
+    Environment = each.value.environment
+    Application = each.value.app_name
+    Purpose     = "test-frontend-file"
+  }
+}

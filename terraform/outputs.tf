@@ -204,3 +204,14 @@ output "application_fqdns" {
     }
   }
 }
+
+output "frontend_test_urls" {
+  description = "Test URLs for frontend applications"
+  value = {
+    for key, combo in local.app_env_combinations :
+    combo.fqdn => {
+      s3_website_url = "http://${module.frontend_bucket[key].s3_bucket_id}.s3-website-${data.aws_region.current.id}.amazonaws.com"
+      s3_object_url  = "https://${module.frontend_bucket[key].s3_bucket_bucket_regional_domain_name}/index.html"
+    }
+  }
+}
