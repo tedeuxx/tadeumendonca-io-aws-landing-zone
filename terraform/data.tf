@@ -44,27 +44,9 @@ data "aws_acm_certificate" "main" {
 # IAM POLICY DOCUMENTS
 ############################
 
-# VPC Flow Logs IAM policy document
-data "aws_iam_policy_document" "vpc_flow_logs_policy" {
-  statement {
-    sid    = "AllowVPCFlowLogsToS3"
-    effect = "Allow"
-
-    actions = [
-      "s3:PutObject",
-      "s3:GetBucketAcl"
-    ]
-
-    resources = [
-      module.logs_bucket.s3_bucket_arn,
-      "${module.logs_bucket.s3_bucket_arn}/vpc-flow-logs/*"
-    ]
-  }
-}
-
 # IAM policy document for CloudFront OAC access to S3
 data "aws_iam_policy_document" "frontend_cloudfront" {
-  for_each = local.app_env_combinations
+  for_each = var.create_cloudfront_distributions ? local.app_env_combinations : {}
 
   statement {
     sid    = "AllowCloudFrontServicePrincipal"

@@ -8,6 +8,9 @@ customer_workload_environment = "main"
 # Workload environments to deploy
 workload_environments = ["staging", "production"]
 
+# CloudFront configuration - enabled (requires account verification)
+create_cloudfront_distributions = true
+
 # Applications configuration with subdomain patterns
 applications = {
   webapp = {

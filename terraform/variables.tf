@@ -111,3 +111,9 @@ variable "root_domain_name" {
   default     = "tadeumendonca.io"
 }
 
+variable "create_cloudfront_distributions" {
+  description = "Whether to create CloudFront distributions. Requires ACM certificate to exist."
+  type        = bool
+  default     = false
+}
+

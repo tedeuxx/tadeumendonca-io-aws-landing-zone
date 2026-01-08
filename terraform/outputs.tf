@@ -154,8 +154,8 @@ output "documentdb_cluster_ports" {
 # IAM
 ############################
 output "vpc_flow_logs_role_arn" {
-  description = "VPC Flow Logs IAM role ARN"
-  value       = module.vpc_flow_logs_role.iam_role_arn
+  description = "VPC Flow Logs IAM role ARN (managed by VPC module)"
+  value       = module.vpc.vpc_flow_log_cloudwatch_iam_role_arn
 }
 
 ############################

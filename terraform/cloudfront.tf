@@ -12,7 +12,7 @@ module "cloudfront" {
   source  = "terraform-aws-modules/cloudfront/aws"
   version = "~> 6.2"
 
-  for_each = local.app_env_combinations
+  for_each = var.create_cloudfront_distributions ? local.app_env_combinations : {}
 
   comment             = "${each.value.fqdn} frontend distribution"
   enabled             = true
