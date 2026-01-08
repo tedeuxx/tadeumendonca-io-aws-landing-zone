@@ -57,3 +57,30 @@ variable "workload_environments" {
   default     = []
 }
 
+variable "documentdb_config" {
+  description = "DocumentDB configuration for each environment"
+  type = map(object({
+    engine_version                         = string
+    master_username                        = string
+    instance_count                         = number
+    instance_class                         = string
+    backup_retention                       = number
+    preferred_backup_window                = string
+    preferred_maintenance_window           = string
+    deletion_protection                    = bool
+    skip_final_snapshot                    = bool
+    cloudwatch_logs                        = list(string)
+    create_parameter_group                 = bool
+    db_cluster_parameter_group_name        = string
+    db_cluster_parameter_group_description = string
+    db_cluster_parameter_group_family      = string
+    db_cluster_parameter_group_parameters = list(object({
+      apply_method = string
+      name         = string
+      value        = string
+    }))
+    cluster_tags = map(string)
+  }))
+  default = {}
+}
+
