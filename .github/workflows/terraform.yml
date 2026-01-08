@@ -10,6 +10,15 @@ on:
         options:
           - apply
           - destroy
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+          - staging+production
   push:
     branches:
       - main
@@ -26,8 +35,11 @@ on:
       - 'src/**'
 
 jobs:
-  terraform:
+  deploy-staging:
     runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.environment == 'staging' || github.event.inputs.environment == 'staging+production'))
 
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -72,16 +84,18 @@ jobs:
         working-directory: terraform
         run: terraform validate
 
-      - name: Terraform plan
+      - name: Terraform plan (staging)
         id: plan
         if: ${{ github.event.inputs.action != 'destroy'}}
         working-directory: terraform
         continue-on-error: true
         run: |
-          echo "🔄 Running terraform plan..."
+          echo "🔄 Running terraform plan for staging environment..."
           
-          # Run terraform plan and capture both stdout and stderr
-          terraform plan -out=tfplan.out -compact-warnings -var-file=./env/main.tfvars > plan_output.log 2>&1
+          # Run terraform plan with staging workload
+          terraform plan -out=tfplan-staging.out -compact-warnings \
+            -var-file=./env/main.tfvars \
+            -var='workload_environments=["staging"]' > plan_output.log 2>&1
           PLAN_EXIT_CODE=$?
           
           echo "📋 Terraform plan output:"
@@ -91,7 +105,7 @@ jobs:
             echo "✅ Terraform plan succeeded"
             
             # Check if plan file is valid
-            if terraform show tfplan.out > /dev/null 2>&1; then
+            if terraform show tfplan-staging.out > /dev/null 2>&1; then
               echo "✅ Plan file is valid"
               
               # Format sysout for parsing
@@ -118,22 +132,22 @@ jobs:
             exit 1
           fi
 
-      - name: Terraform apply
+      - name: Terraform apply (staging)
         id: apply
         if: ${{ github.event.inputs.action != 'destroy' && steps.plan.outputs.plan_success == 'true' && steps.plan.outputs.no_changes == 'false'}}
         working-directory: terraform
         run: |
-          echo "🔄 Applying terraform plan..."
-          if [ -f tfplan.out ]; then
+          echo "🔄 Applying terraform plan for staging..."
+          if [ -f tfplan-staging.out ]; then
             echo "✅ Plan file exists"
             
             # Validate plan file before applying
-            if terraform show tfplan.out > /dev/null 2>&1; then
+            if terraform show tfplan-staging.out > /dev/null 2>&1; then
               echo "✅ Plan file is valid, applying..."
               echo "📋 Terraform apply output:"
               
               # Run terraform apply and capture output
-              terraform apply -auto-approve tfplan.out 2>&1 | tee apply_output.log
+              terraform apply -auto-approve tfplan-staging.out 2>&1 | tee apply_output.log
               APPLY_EXIT_CODE=$?
               
               if [ $APPLY_EXIT_CODE -eq 0 ]; then
@@ -157,13 +171,13 @@ jobs:
             echo "❌ Plan file not found - cannot apply"
             exit 1
           fi
-        
-      - name: Show Terraform Outputs
+
+      - name: Show Terraform Outputs (staging)
         id: outputs
         if: ${{ steps.apply.outcome == 'success' }}
         working-directory: terraform
         run: |
-          echo "📊 Terraform Outputs:"
+          echo "📊 Terraform Outputs (Staging Environment):"
           
           # Check if terraform outputs exist and are valid
           if terraform output -json > /tmp/outputs.json 2>/dev/null; then
@@ -182,34 +196,190 @@ jobs:
             terraform output 2>/dev/null || echo "No outputs found"
           fi
 
-      - name: Terraform destroy
+      - name: Terraform destroy (staging)
         id: destroy
         if: ${{ github.event.inputs.action == 'destroy' }}
         working-directory: terraform
-        run: terraform destroy -auto-approve -var-file=./env/main.tfvars
-
-      - name: Workflow Summary
-        if: always()
         run: |
-          echo "## 📋 Terraform Workflow Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          terraform destroy -auto-approve \
+            -var-file=./env/main.tfvars \
+            -var='workload_environments=["staging"]'
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: |
+      github.event_name == 'workflow_dispatch' && 
+      (github.event.inputs.environment == 'production' || github.event.inputs.environment == 'staging+production')
+    environment: production  # GitHub environment protection
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      TF_IN_AUTOMATION: true
+      TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
+      TF_CLOUD_ORGANIZATION: tadeumendonca-io
+      TF_WORKSPACE: aws-landing-zone-main
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.12.1
+      
+      - name: Configure Terraform credentials
+        id: credentials
+        working-directory: terraform
+        run: |
+          mkdir -p ~/.terraform.d
+          echo '{"credentials":{"app.terraform.io":{"token":"${{ secrets.TERRAFORM_CLOUD_TOKEN }}"}}}' > ~/.terraform.d/credentials.tfrc.json
+
+      - name: Terraform init
+        id: init
+        working-directory: terraform
+        run: |
+          # Clean any existing state/cache to ensure fresh start
+          rm -rf .terraform .terraform.lock.hcl 2>/dev/null || true
+          # Initialize with Terraform Cloud
+          terraform init -input=false
+
+      - name: Terraform plan (production)
+        id: plan
+        if: ${{ github.event.inputs.action != 'destroy'}}
+        working-directory: terraform
+        continue-on-error: true
+        run: |
+          echo "🔄 Running terraform plan for production environment..."
           
-          if [ "${{ steps.plan.outputs.plan_success }}" == "true" ]; then
-            echo "✅ **Terraform Plan**: Succeeded" >> $GITHUB_STEP_SUMMARY
-            if [ "${{ steps.plan.outputs.no_changes }}" == "true" ]; then
-              echo "ℹ️ **Changes**: No changes detected" >> $GITHUB_STEP_SUMMARY
+          # Determine workload environments based on input
+          if [ "${{ github.event.inputs.environment }}" == "production" ]; then
+            WORKLOAD_ENVS='["production"]'
+            echo "📋 Deploying production only"
+          else
+            WORKLOAD_ENVS='["staging","production"]'
+            echo "📋 Deploying staging + production"
+          fi
+          
+          # Run terraform plan with production workload
+          terraform plan -out=tfplan-production.out -compact-warnings \
+            -var-file=./env/main.tfvars \
+            -var="workload_environments=$WORKLOAD_ENVS" > plan_output.log 2>&1
+          PLAN_EXIT_CODE=$?
+          
+          echo "📋 Terraform plan output:"
+          cat plan_output.log
+          
+          if [ $PLAN_EXIT_CODE -eq 0 ]; then
+            echo "✅ Terraform plan succeeded"
+            echo "plan_success=true" >> "$GITHUB_OUTPUT"
+            echo "workload_envs=$WORKLOAD_ENVS" >> "$GITHUB_OUTPUT"
+          else
+            echo "❌ Terraform plan failed with exit code: $PLAN_EXIT_CODE"
+            echo "plan_success=false" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+
+      - name: Terraform apply (production)
+        id: apply
+        if: ${{ github.event.inputs.action != 'destroy' && steps.plan.outputs.plan_success == 'true' }}
+        working-directory: terraform
+        run: |
+          echo "🔄 Applying terraform plan for production..."
+          if [ -f tfplan-production.out ]; then
+            echo "✅ Plan file exists, applying..."
+            echo "📋 Terraform apply output:"
+            
+            # Run terraform apply and capture output
+            terraform apply -auto-approve tfplan-production.out 2>&1 | tee apply_output.log
+            APPLY_EXIT_CODE=$?
+            
+            if [ $APPLY_EXIT_CODE -eq 0 ]; then
+              echo ""
+              echo "✅ Terraform apply completed successfully!"
+              echo "📊 Apply summary:"
+              tail -20 apply_output.log | grep -E "(Apply complete|created|modified|destroyed)"
             else
-              echo "🔧 **Changes**: Infrastructure changes planned" >> $GITHUB_STEP_SUMMARY
+              echo ""
+              echo "❌ Terraform apply failed with exit code: $APPLY_EXIT_CODE"
+              echo "📋 Last 50 lines of apply output:"
+              tail -50 apply_output.log
+              exit 1
             fi
           else
-            echo "❌ **Terraform Plan**: Failed" >> $GITHUB_STEP_SUMMARY
-            echo "🔍 Check the plan step output for detailed error information" >> $GITHUB_STEP_SUMMARY
+            echo "❌ Plan file not found - cannot apply"
+            exit 1
+          fi
+
+      - name: Show Terraform Outputs (production)
+        id: outputs
+        if: ${{ steps.apply.outcome == 'success' }}
+        working-directory: terraform
+        run: |
+          echo "📊 Terraform Outputs (Production Environment):"
+          
+          # Check if terraform outputs exist and are valid
+          if terraform output -json > /tmp/outputs.json 2>/dev/null; then
+            # Validate JSON before processing
+            if jq empty /tmp/outputs.json 2>/dev/null; then
+              echo "✅ Valid terraform outputs found:"
+              cat /tmp/outputs.json | jq -r 'to_entries[] | "\(.key): \(.value.value)"'
+            else
+              echo "⚠️ Terraform outputs exist but JSON is malformed"
+              echo "Raw output:"
+              terraform output 2>/dev/null || echo "No outputs available"
+            fi
+          else
+            echo "⚠️ No terraform outputs available"
+            echo "This might indicate a partial deployment or configuration issue"
+            terraform output 2>/dev/null || echo "No outputs found"
+          fi
+
+      - name: Terraform destroy (production)
+        id: destroy
+        if: ${{ github.event.inputs.action == 'destroy' }}
+        working-directory: terraform
+        run: |
+          # Determine workload environments based on input
+          if [ "${{ github.event.inputs.environment }}" == "production" ]; then
+            WORKLOAD_ENVS='["production"]'
+          else
+            WORKLOAD_ENVS='["staging","production"]'
           fi
           
-          if [ "${{ steps.apply.outcome }}" == "success" ]; then
-            echo "✅ **Terraform Apply**: Succeeded" >> $GITHUB_STEP_SUMMARY
-          elif [ "${{ steps.apply.outcome }}" == "failure" ]; then
-            echo "❌ **Terraform Apply**: Failed" >> $GITHUB_STEP_SUMMARY
-          elif [ "${{ steps.apply.outcome }}" == "skipped" ]; then
-            echo "⏭️ **Terraform Apply**: Skipped (no changes or plan failed)" >> $GITHUB_STEP_SUMMARY
+          terraform destroy -auto-approve \
+            -var-file=./env/main.tfvars \
+            -var="workload_environments=$WORKLOAD_ENVS"
+
+  workflow-summary:
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-production]
+    if: always()
+    steps:
+      - name: Workflow Summary
+        run: |
+          echo "## 📋 AWS Landing Zone Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Staging summary
+          if [ "${{ needs.deploy-staging.result }}" == "success" ]; then
+            echo "✅ **Staging Environment**: Deployed successfully" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.deploy-staging.result }}" == "failure" ]; then
+            echo "❌ **Staging Environment**: Deployment failed" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.deploy-staging.result }}" == "skipped" ]; then
+            echo "⏭️ **Staging Environment**: Skipped" >> $GITHUB_STEP_SUMMARY
           fi
+          
+          # Production summary
+          if [ "${{ needs.deploy-production.result }}" == "success" ]; then
+            echo "✅ **Production Environment**: Deployed successfully" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.deploy-production.result }}" == "failure" ]; then
+            echo "❌ **Production Environment**: Deployment failed" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.deploy-production.result }}" == "skipped" ]; then
+            echo "⏭️ **Production Environment**: Skipped (manual deployment required)" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🔧 **Environment Promotion**: Use workflow_dispatch to deploy production workloads" >> $GITHUB_STEP_SUMMARY

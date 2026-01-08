@@ -57,6 +57,43 @@ After cloning the repository, install Git hooks for automatic code formatting:
 
 ---
 
+### 🚀 Environment Promotion Strategy
+
+This project uses a **single Terraform workspace** with **environment promotion** capabilities:
+
+#### Automatic Staging Deployment
+- **Trigger**: Push to `main` branch
+- **Environment**: Staging workloads only
+- **Command**: `terraform apply -var-file=env/main.tfvars -var='workload_environments=["staging"]'`
+
+#### Manual Production Promotion
+- **Trigger**: GitHub Actions `workflow_dispatch` 
+- **Environment**: Production workloads (requires approval)
+- **Options**:
+  - `staging`: Deploy staging only
+  - `production`: Deploy production only  
+  - `staging+production`: Deploy both environments
+
+#### Local Development
+```bash
+# Staging environment (local development)
+terraform plan -var-file=env/main.tfvars -var-file=env/local.tfvars -var='workload_environments=["staging"]'
+
+# Production environment (local testing)
+terraform plan -var-file=env/main.tfvars -var-file=env/local.tfvars -var='workload_environments=["production"]'
+
+# Both environments
+terraform plan -var-file=env/main.tfvars -var-file=env/local.tfvars -var='workload_environments=["staging","production"]'
+```
+
+**Benefits:**
+- **Shared foundation**: Network and base resources deployed once
+- **Controlled promotion**: Production requires manual approval
+- **Cost optimization**: Start with staging, add production when ready
+- **Single state**: Simplified management with environment isolation at resource level
+
+---
+
 ### ✅ GitHub Setup (Pro Required)
 
 | Requirement                | Why It Matters                                                 |

@@ -5,10 +5,7 @@ customer_workload_owner       = "tadeu.mendonca"
 customer_workload_sponsor     = "tadeu.mendonca"
 customer_workload_environment = "main"
 
-# Workload environments to deploy (empty for CI/CD - no databases initially)
-workload_environments = ["staging"]
-
-# DocumentDB configuration (empty since no environments deployed in CI/CD)
+# DocumentDB configuration for all environments
 documentdb_config = {
   staging = {
     engine_version                         = "4.0.0"
@@ -27,5 +24,26 @@ documentdb_config = {
     db_cluster_parameter_group_family      = ""
     db_cluster_parameter_group_parameters  = []
     cluster_tags                           = {}
+  }
+  production = {
+    engine_version                         = "4.0.0"
+    master_username                        = "docdb"
+    instance_count                         = 2
+    instance_class                         = "db.r5.large"
+    backup_retention                       = 7
+    preferred_backup_window                = "07:00-09:00"
+    preferred_maintenance_window           = "sun:05:00-sun:06:00"
+    deletion_protection                    = true
+    skip_final_snapshot                    = false
+    cloudwatch_logs                        = ["audit", "profiler"]
+    create_parameter_group                 = false
+    db_cluster_parameter_group_name        = ""
+    db_cluster_parameter_group_description = ""
+    db_cluster_parameter_group_family      = ""
+    db_cluster_parameter_group_parameters  = []
+    cluster_tags = {
+      Environment = "production"
+      Backup      = "required"
+    }
   }
 }
