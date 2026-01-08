@@ -94,6 +94,51 @@ terraform plan -var-file=env/main.tfvars -var-file=env/local.tfvars -var='worklo
 
 ---
 
+### ✅ AWS Account Prerequisites
+
+| Requirement | Description | Configuration |
+|-------------|-------------|---------------|
+| **Route53 Hosted Zone** | Public hosted zone for your domain | Must be configured for `root_domain_name` variable |
+| **ACM Certificate** | Wildcard SSL certificate | Must be `*.yourdomain.com` in **us-east-1** region |
+| **Domain Ownership** | Verified domain ownership | Required for Route53 and ACM certificate validation |
+
+#### 🔧 Domain Configuration Steps
+
+If you fork this repository, you'll need to configure your own domain:
+
+1. **Update Domain Variable**:
+   ```hcl
+   # In terraform/env/main.tfvars
+   root_domain_name = "yourdomain.com"  # Replace with your domain
+   ```
+
+2. **Create Route53 Hosted Zone**:
+   - Go to AWS Route53 console
+   - Create public hosted zone for your domain
+   - Update your domain registrar's nameservers
+
+3. **Request ACM Certificate**:
+   - Go to AWS Certificate Manager (us-east-1 region)
+   - Request wildcard certificate: `*.yourdomain.com`
+   - Validate via DNS (recommended) or email
+
+4. **Update Application Subdomains** (optional):
+   ```hcl
+   # In terraform/env/main.tfvars
+   applications = {
+     webapp = {
+       subdomain   = "app"        # Creates app.yourdomain.com
+       description = "Main web application"
+     }
+   }
+   ```
+
+**Expected Domain Pattern**:
+- **Production**: `app.yourdomain.com`
+- **Staging**: `app.staging.yourdomain.com`
+
+---
+
 ### ✅ GitHub Setup (Pro Required)
 
 | Requirement                | Why It Matters                                                 |
@@ -277,7 +322,7 @@ You **can adapt** this solution for experimentation with free tiers by:
 
 ## 📬 Connect With Me
 
-Follow the progress, star the repo, open issues, or drop me a message on [LinkedIn](https://www.linkedin.com/in/luiztadeumendonca). Let’s build better — together.
+Follow the progress, star the repo, open issues, or drop me a message on [LinkedIn](https://www.linkedin.com/in/luiz-tadeu-mendonca-83a16530/). Let’s build better — together.
 
 ---
 

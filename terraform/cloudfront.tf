@@ -1,9 +1,16 @@
 # CloudFront distributions for frontend SPA hosting
 # Uses S3 private buckets with Origin Access Control (OAC) for security
 
+# AWS provider alias for us-east-1 (required for ACM certificates with CloudFront)
+provider "aws" {
+  alias  = "us_east_1"
+  region = "us-east-1"
+}
+
 # CloudFront distribution for each application in each environment
 module "cloudfront" {
-  source = "terraform-aws-modules/cloudfront/aws"
+  source  = "terraform-aws-modules/cloudfront/aws"
+  version = "~> 6.2"
 
   for_each = local.app_env_combinations
 
@@ -12,8 +19,8 @@ module "cloudfront" {
   is_ipv6_enabled     = true
   default_root_object = "index.html"
 
-  # Custom domain configuration (will be configured later with ACM certificates)
-  # aliases = [each.value.fqdn]
+  # Custom domain configuration
+  aliases = [each.value.fqdn]
 
   # Origin Access Control configuration
   origin_access_control = {
@@ -75,12 +82,11 @@ module "cloudfront" {
     }
   }
 
-  # SSL certificate configuration (using CloudFront default for now)
+  # SSL certificate configuration
   viewer_certificate = {
-    cloudfront_default_certificate = true
-    # ssl_support_method             = "sni-only"
-    # minimum_protocol_version       = "TLSv1.2_2021"
-    # acm_certificate_arn           = aws_acm_certificate.main[each.key].arn
+    acm_certificate_arn      = data.aws_acm_certificate.main.arn
+    ssl_support_method       = "sni-only"
+    minimum_protocol_version = "TLSv1.2_2021"
   }
 
   tags = merge(local.common_tags, {
@@ -90,31 +96,6 @@ module "cloudfront" {
     FQDN        = each.value.fqdn
     Purpose     = "${each.value.environment}-${each.value.app_name}-frontend-distribution"
   })
-}
-
-# IAM policy document for CloudFront OAC access to S3
-data "aws_iam_policy_document" "frontend_cloudfront" {
-  for_each = local.app_env_combinations
-
-  statement {
-    sid    = "AllowCloudFrontServicePrincipal"
-    effect = "Allow"
-
-    principals {
-      type        = "Service"
-      identifiers = ["cloudfront.amazonaws.com"]
-    }
-
-    actions = ["s3:GetObject"]
-
-    resources = ["${module.frontend_bucket[each.key].s3_bucket_arn}/*"]
-
-    condition {
-      test     = "StringEquals"
-      variable = "AWS:SourceArn"
-      values   = [module.cloudfront[each.key].cloudfront_distribution_arn]
-    }
-  }
 }
 
 # S3 bucket policy to allow CloudFront OAC access

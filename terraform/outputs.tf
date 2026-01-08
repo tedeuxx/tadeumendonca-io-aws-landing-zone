@@ -155,7 +155,7 @@ output "documentdb_cluster_ports" {
 ############################
 output "vpc_flow_logs_role_arn" {
   description = "VPC Flow Logs IAM role ARN"
-  value       = aws_iam_role.vpc_flow_logs_role.arn
+  value       = module.vpc_flow_logs_role.iam_role_arn
 }
 
 ############################
@@ -243,4 +243,29 @@ output "cloudfront_domain_names" {
     for key, combo in local.app_env_combinations :
     key => module.cloudfront[key].cloudfront_distribution_domain_name
   }
+}
+
+############################
+# Route53 & DNS
+############################
+output "route53_zone_id" {
+  description = "Route53 hosted zone ID for tadeumendonca.io"
+  value       = data.aws_route53_zone.main.zone_id
+}
+
+output "route53_records" {
+  description = "Route53 DNS records for frontend applications"
+  value = {
+    for key, combo in local.app_env_combinations :
+    combo.fqdn => {
+      name    = combo.fqdn
+      type    = "A"
+      zone_id = data.aws_route53_zone.main.zone_id
+    }
+  }
+}
+
+output "acm_certificate_arn" {
+  description = "ACM certificate ARN used for CloudFront"
+  value       = data.aws_acm_certificate.main.arn
 }

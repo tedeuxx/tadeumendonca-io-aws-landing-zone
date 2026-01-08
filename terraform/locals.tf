@@ -23,7 +23,7 @@ locals {
       subdomain   = var.applications[combo[0]].subdomain
       description = var.applications[combo[0]].description
       # FQDN pattern: subdomain.environment.domain for staging, subdomain.domain for production
-      fqdn = combo[1] == "production" ? "${var.applications[combo[0]].subdomain}.tadeumendonca.io" : "${var.applications[combo[0]].subdomain}.${combo[1]}.tadeumendonca.io"
+      fqdn = combo[1] == "production" ? "${var.applications[combo[0]].subdomain}.${var.root_domain_name}" : "${var.applications[combo[0]].subdomain}.${combo[1]}.${var.root_domain_name}"
     }
   }
 

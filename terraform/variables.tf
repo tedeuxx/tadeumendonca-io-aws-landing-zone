@@ -102,3 +102,12 @@ variable "documentdb_config" {
   default = {}
 }
 
+############################
+# DNS & Domain Configuration
+############################
+variable "root_domain_name" {
+  description = "Root domain name for this AWS account (e.g., example.com). Must have a Route53 hosted zone and ACM wildcard certificate configured in the account."
+  type        = string
+  default     = "tadeumendonca.io"
+}
+
