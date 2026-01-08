@@ -9,13 +9,14 @@ This specification defines the infrastructure requirements for the Tadeumendonca
 - **AWS_Foundation**: Complete AWS infrastructure foundation including networking, compute, and security
 - **Landing_Zone**: Secure, well-architected AWS environment foundation that can scale from single to multi-account
 - **Web_Application_Infrastructure**: The complete AWS infrastructure stack for hosting web applications
-- **Load_Balancer**: Application Load Balancer that distributes incoming traffic with WAF protection
-- **Container_Service**: EKS cluster running on AWS Fargate for serverless container execution
+- **API_Gateway**: AWS API Gateway that provides managed API endpoints with VPC Link integration to private EKS services
+- **Frontend_Service**: CloudFront distribution with private S3 bucket using Origin Access Control (OAC) for static asset hosting
+- **Container_Service**: Shared EKS cluster running on AWS Fargate for serverless container execution with namespace isolation
 - **Compute_Platform**: AWS Fargate for serverless container compute without node management
 - **Service_Mesh**: Istio service mesh for traffic management, security, and observability
 - **GitOps_Service**: ArgoCD with Argo Rollouts for continuous deployment and advanced deployment strategies
 - **Observability_Stack**: Prometheus, Grafana, Kiali, and AWS Distro for OpenTelemetry (ADOT) for monitoring and distributed tracing
-- **Database_Service**: Amazon DocumentDB (MongoDB-compatible) for document-based data storage
+- **Database_Service**: Amazon DocumentDB (MongoDB-compatible) for document-based data storage per environment
 - **DNS_Service**: Route 53 hosted zone for domain management
 - **Certificate_Service**: AWS Certificate Manager for SSL/TLS certificates
 - **Storage_Service**: S3 bucket for static assets and backups
@@ -60,42 +61,64 @@ This specification defines the infrastructure requirements for the Tadeumendonca
 
 #### Acceptance Criteria
 
-1. THE Container_Service SHALL provide managed EKS clusters using AWS Fargate for serverless compute
-2. THE Compute_Platform SHALL eliminate node management, patching, and scaling complexity
-3. WHEN application load increases, THE Container_Service SHALL automatically scale pods up to handle demand
-4. WHEN application load decreases, THE Container_Service SHALL automatically scale pods down to minimize costs
-5. THE Container_Service SHALL support scaling to zero for staging environments during non-usage periods
-6. THE Container_Service SHALL deploy new application versions using rolling updates with zero downtime
-7. THE Container_Service SHALL integrate with Load_Balancer through AWS Load Balancer Controller
-8. THE Container_Service SHALL run containers in private subnets for security
+1. THE Container_Service SHALL provide a shared managed EKS cluster using AWS Fargate for serverless compute
+2. THE Container_Service SHALL isolate workload applications using Kubernetes namespaces within the shared cluster
+3. THE Compute_Platform SHALL eliminate node management, patching, and scaling complexity
+4. WHEN application load increases, THE Container_Service SHALL automatically scale pods up to handle demand
+5. WHEN application load decreases, THE Container_Service SHALL automatically scale pods down to minimize costs
+6. THE Container_Service SHALL support scaling to zero for staging environments during non-usage periods
+7. THE Container_Service SHALL deploy new application versions using rolling updates with zero downtime
+8. THE Container_Service SHALL run containers in private subnets with no direct internet access
+9. THE Container_Service SHALL be accessible from the internet only through API_Gateway with VPC Link integration
 
-### Requirement 4: Load Balancing and Traffic Management
+### Requirement 4: API Gateway and Traffic Management
 
-**User Story:** As a startup founder, I want reliable traffic distribution with web application protection, so that my applications can handle varying loads while being protected from attacks.
-
-#### Acceptance Criteria
-
-1. THE Load_Balancer SHALL distribute incoming HTTP and HTTPS traffic across multiple application instances
-2. WHEN an application instance becomes unhealthy, THE Load_Balancer SHALL automatically route traffic to healthy instances
-3. THE Load_Balancer SHALL perform health checks on application instances every 30 seconds
-4. THE Load_Balancer SHALL support SSL termination using certificates from Certificate_Service
-5. WHEN no healthy instances are available, THE Load_Balancer SHALL return appropriate error responses
-6. THE Security_Service SHALL protect applications from SQL injection, XSS, and other OWASP Top 10 vulnerabilities
-7. THE Security_Service SHALL provide bot control and IP reputation filtering
-
-### Requirement 5: Document Database Services
-
-**User Story:** As a startup founder, I want managed document database services, so that my modern applications can store and retrieve JSON data reliably without database administration overhead.
+**User Story:** As a startup founder, I want managed API Gateway services for each workload application, so that my backend services are securely exposed to the internet with proper authentication and rate limiting.
 
 #### Acceptance Criteria
 
-1. THE Database_Service SHALL provide Amazon DocumentDB (MongoDB-compatible) cluster
+1. THE API_Gateway SHALL provide a dedicated API Gateway instance for each workload application
+2. THE API_Gateway SHALL connect to the shared Container_Service through VPC Link for secure private communication
+3. THE API_Gateway SHALL support REST and HTTP API protocols with OpenAPI specification
+4. THE API_Gateway SHALL perform request validation and transformation before forwarding to backend services
+5. THE API_Gateway SHALL implement rate limiting and throttling to protect backend services
+6. THE API_Gateway SHALL support API key authentication and JWT token validation
+7. THE API_Gateway SHALL integrate with Security_Service for DDoS protection and web application firewall rules
+8. THE API_Gateway SHALL provide request and response logging for monitoring and debugging
+9. WHEN backend services are unhealthy, THE API_Gateway SHALL return appropriate error responses
+10. THE API_Gateway SHALL support custom domain names with SSL certificates from Certificate_Service
+
+### Requirement 5: Frontend Hosting and Content Delivery
+
+**User Story:** As a startup founder, I want fast, secure static website hosting for each workload application, so that my frontend applications load quickly worldwide with proper security controls.
+
+#### Acceptance Criteria
+
+1. THE Frontend_Service SHALL provide a dedicated S3 bucket for each workload application's static assets
+2. THE Frontend_Service SHALL use private S3 buckets with Origin Access Control (OAC) for security
+3. THE Frontend_Service SHALL provide a dedicated CloudFront distribution for each workload application
+4. THE Frontend_Service SHALL serve static assets globally through CloudFront CDN for optimal performance
+5. THE Frontend_Service SHALL support Single Page Application (SPA) routing with custom error pages
+6. THE Frontend_Service SHALL integrate with Security_Service for web application firewall protection
+7. THE Frontend_Service SHALL support custom domain names with SSL certificates from Certificate_Service
+8. THE Frontend_Service SHALL implement proper caching strategies for static assets and API calls
+9. THE Frontend_Service SHALL redirect HTTP traffic to HTTPS for security
+10. THE Frontend_Service SHALL support multiple environments (staging and production) with separate distributions
+
+### Requirement 6: Document Database Services
+
+**User Story:** As a startup founder, I want managed document database services per environment, so that my modern applications can store and retrieve JSON data reliably without database administration overhead.
+
+#### Acceptance Criteria
+
+1. THE Database_Service SHALL provide Amazon DocumentDB (MongoDB-compatible) clusters per environment (staging and production)
 2. THE Database_Service SHALL perform automated daily backups with point-in-time recovery
-3. THE Database_Service SHALL run in private subnets accessible only from application containers
-4. THE Database_Service SHALL support connection pooling for efficient resource usage
+3. THE Database_Service SHALL run in private subnets accessible only from the shared Container_Service
+4. THE Database_Service SHALL support connection pooling for efficient resource usage across multiple workload applications
 5. WHEN the database instance fails, THE Database_Service SHALL automatically failover to maintain availability
 6. THE Database_Service SHALL encrypt data at rest using AWS managed keys
 7. THE Database_Service SHALL use Multi-AZ deployment for production and Single-AZ for staging cost optimization
+8. THE Database_Service SHALL isolate workload data using separate databases within each environment cluster
 
 ### Requirement 6: Service Mesh and Traffic Management
 
