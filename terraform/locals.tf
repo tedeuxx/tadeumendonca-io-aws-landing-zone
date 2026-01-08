@@ -21,23 +21,45 @@ locals {
   # DocumentDB environment-specific configurations
   documentdb_config = {
     staging = {
-      instance_count         = 1
-      instance_class         = "db.t3.medium"
-      backup_retention       = 3
-      deletion_protection    = false
-      skip_final_snapshot    = true
-      cloudwatch_logs        = ["audit"]
-      create_parameter_group = false
-      cluster_tags           = {}
+      engine_version                         = "4.0.0"
+      master_username                        = "docdb"
+      instance_count                         = 1
+      instance_class                         = "db.t3.medium"
+      backup_retention                       = 3
+      preferred_backup_window                = "07:00-09:00"
+      preferred_maintenance_window           = "sun:05:00-sun:06:00"
+      deletion_protection                    = false
+      skip_final_snapshot                    = true
+      cloudwatch_logs                        = ["audit"]
+      create_parameter_group                 = false
+      db_cluster_parameter_group_name        = null
+      db_cluster_parameter_group_description = null
+      db_cluster_parameter_group_family      = null
+      db_cluster_parameter_group_parameters  = []
+      cluster_tags                           = {}
     }
     production = {
-      instance_count         = 2
-      instance_class         = "db.t3.medium"
-      backup_retention       = 7
-      deletion_protection    = true
-      skip_final_snapshot    = false
-      cloudwatch_logs        = ["audit", "profiler"]
-      create_parameter_group = true
+      engine_version                         = "4.0.0"
+      master_username                        = "docdb"
+      instance_count                         = 2
+      instance_class                         = "db.t3.medium"
+      backup_retention                       = 7
+      preferred_backup_window                = "03:00-05:00"
+      preferred_maintenance_window           = "sun:02:00-sun:03:00"
+      deletion_protection                    = true
+      skip_final_snapshot                    = false
+      cloudwatch_logs                        = ["audit", "profiler"]
+      create_parameter_group                 = true
+      db_cluster_parameter_group_name        = "production-params"
+      db_cluster_parameter_group_description = "DocumentDB cluster parameter group for production"
+      db_cluster_parameter_group_family      = "docdb4.0"
+      db_cluster_parameter_group_parameters = [
+        {
+          apply_method = "immediate"
+          name         = "tls"
+          value        = "enabled"
+        }
+      ]
       cluster_tags = {
         Backup = "required"
       }
