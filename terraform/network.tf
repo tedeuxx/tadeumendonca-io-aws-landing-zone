@@ -5,7 +5,7 @@
 # VPC Module using official AWS community module
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 5.0"
+  version = "~> 5.21"
 
   name = "${local.customer_workload_name}-vpc"
   cidr = "10.0.0.0/16"
@@ -71,7 +71,7 @@ module "vpc" {
 # VPC Endpoints using terraform-aws-modules/vpc/aws endpoints feature
 module "vpc_endpoints" {
   source  = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
-  version = "~> 5.0"
+  version = "~> 5.21"
 
   vpc_id = module.vpc.vpc_id
 

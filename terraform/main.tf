@@ -5,7 +5,7 @@
 # S3 Buckets for application assets and backups
 module "assets_bucket" {
   source  = "terraform-aws-modules/s3-bucket/aws"
-  version = "~> 4.0"
+  version = "~> 5.0"
 
   bucket = "${local.aws_account_id}-${local.customer_workload_name}-assets"
 
@@ -67,7 +67,7 @@ module "assets_bucket" {
 
 module "backups_bucket" {
   source  = "terraform-aws-modules/s3-bucket/aws"
-  version = "~> 4.0"
+  version = "~> 5.0"
 
   bucket = "${local.aws_account_id}-${local.customer_workload_name}-backups"
 
@@ -133,7 +133,7 @@ module "backups_bucket" {
 
 module "logs_bucket" {
   source  = "terraform-aws-modules/s3-bucket/aws"
-  version = "~> 4.0"
+  version = "~> 5.0"
 
   bucket = "${local.aws_account_id}-${local.customer_workload_name}-logs"
 
