@@ -3,7 +3,7 @@
 
 # Route53 A records for frontend applications (alias to CloudFront)
 resource "aws_route53_record" "frontend_apps" {
-  for_each = local.app_env_combinations
+  for_each = var.create_cloudfront_distributions ? local.app_env_combinations : {}
 
   zone_id = data.aws_route53_zone.main.zone_id
   name    = each.value.fqdn

@@ -1,12 +1,6 @@
 # CloudFront distributions for frontend SPA hosting
 # Uses S3 private buckets with Origin Access Control (OAC) for security
 
-# AWS provider alias for us-east-1 (required for ACM certificates with CloudFront)
-provider "aws" {
-  alias  = "us_east_1"
-  region = "us-east-1"
-}
-
 # CloudFront distribution for each application in each environment
 module "cloudfront" {
   source  = "terraform-aws-modules/cloudfront/aws"
@@ -101,7 +95,7 @@ module "cloudfront" {
 # S3 bucket policy to allow CloudFront OAC access
 # Created as separate resource to avoid circular dependency
 resource "aws_s3_bucket_policy" "frontend_cloudfront" {
-  for_each = local.app_env_combinations
+  for_each = var.create_cloudfront_distributions ? local.app_env_combinations : {}
 
   bucket = module.frontend_bucket[each.key].s3_bucket_id
   policy = data.aws_iam_policy_document.frontend_cloudfront[each.key].json

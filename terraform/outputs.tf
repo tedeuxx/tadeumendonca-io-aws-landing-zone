@@ -212,8 +212,8 @@ output "frontend_test_urls" {
     combo.fqdn => {
       s3_website_url    = "http://${module.frontend_bucket[key].s3_bucket_id}.s3-website-${data.aws_region.current.id}.amazonaws.com"
       s3_object_url     = "https://${module.frontend_bucket[key].s3_bucket_bucket_regional_domain_name}/index.html"
-      cloudfront_url    = "https://${module.cloudfront[key].cloudfront_distribution_domain_name}"
-      cloudfront_domain = module.cloudfront[key].cloudfront_distribution_domain_name
+      cloudfront_url    = var.create_cloudfront_distributions ? "https://${module.cloudfront[key].cloudfront_distribution_domain_name}" : "CloudFront disabled"
+      cloudfront_domain = var.create_cloudfront_distributions ? module.cloudfront[key].cloudfront_distribution_domain_name : "CloudFront disabled"
     }
   }
 }
@@ -223,26 +223,26 @@ output "frontend_test_urls" {
 ############################
 output "cloudfront_distribution_ids" {
   description = "CloudFront distribution IDs by application and environment"
-  value = {
+  value = var.create_cloudfront_distributions ? {
     for key, combo in local.app_env_combinations :
     key => module.cloudfront[key].cloudfront_distribution_id
-  }
+  } : {}
 }
 
 output "cloudfront_distribution_arns" {
   description = "CloudFront distribution ARNs by application and environment"
-  value = {
+  value = var.create_cloudfront_distributions ? {
     for key, combo in local.app_env_combinations :
     key => module.cloudfront[key].cloudfront_distribution_arn
-  }
+  } : {}
 }
 
 output "cloudfront_domain_names" {
   description = "CloudFront distribution domain names by application and environment"
-  value = {
+  value = var.create_cloudfront_distributions ? {
     for key, combo in local.app_env_combinations :
     key => module.cloudfront[key].cloudfront_distribution_domain_name
-  }
+  } : {}
 }
 
 ############################

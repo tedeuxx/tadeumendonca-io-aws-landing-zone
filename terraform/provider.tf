@@ -12,3 +12,11 @@ provider "aws" {
     }
   }
 }
+
+# AWS provider alias for us-east-1 (required for ACM certificates with CloudFront)
+provider "aws" {
+  alias  = "us_east_1"
+  region = "us-east-1"
+  # Use profile only for local development, CI uses environment variables
+  profile = var.aws_profile != "" ? var.aws_profile : null
+}
