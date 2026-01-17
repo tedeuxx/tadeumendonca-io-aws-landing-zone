@@ -83,6 +83,9 @@ module "cloudfront" {
     minimum_protocol_version = "TLSv1.2_2021"
   }
 
+  # WAF Web ACL association
+  web_acl_id = aws_wafv2_web_acl.cloudfront.arn
+
   tags = merge(local.common_tags, {
     Name        = each.value.fqdn
     Environment = each.value.environment

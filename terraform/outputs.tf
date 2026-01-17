@@ -269,3 +269,21 @@ output "acm_certificate_arn" {
   description = "ACM certificate ARN used for CloudFront"
   value       = data.aws_acm_certificate.main.arn
 }
+
+############################
+# WAF
+############################
+output "waf_web_acl_id" {
+  description = "WAF Web ACL ID for CloudFront protection"
+  value       = aws_wafv2_web_acl.cloudfront.id
+}
+
+output "waf_web_acl_arn" {
+  description = "WAF Web ACL ARN for CloudFront protection"
+  value       = aws_wafv2_web_acl.cloudfront.arn
+}
+
+output "waf_cloudwatch_log_group" {
+  description = "CloudWatch log group for WAF logs"
+  value       = aws_cloudwatch_log_group.waf_cloudfront.name
+}
