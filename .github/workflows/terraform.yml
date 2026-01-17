@@ -98,7 +98,6 @@ jobs:
         id: plan
         if: ${{ github.event.inputs.action != 'destroy'}}
         working-directory: terraform
-        continue-on-error: true
         run: |
           echo "🔄 Running terraform plan for staging environment..."
           
@@ -265,7 +264,6 @@ jobs:
         id: plan
         if: ${{ github.event.inputs.action != 'destroy'}}
         working-directory: terraform
-        continue-on-error: true
         run: |
           echo "🔄 Running terraform plan for production environment..."
           
