@@ -7,6 +7,8 @@
 
 # WAF Web ACL for CloudFront distributions
 resource "aws_wafv2_web_acl" "cloudfront" {
+  count = var.create_cloudfront_distributions ? 1 : 0
+
   name  = "${replace(local.customer_workload_name, ".", "-")}-cloudfront-waf"
   scope = "CLOUDFRONT"
 
@@ -171,19 +173,23 @@ resource "aws_wafv2_web_acl" "cloudfront" {
 
 # CloudWatch log group for WAF logs
 resource "aws_cloudwatch_log_group" "waf_cloudfront" {
-  name              = "/aws/wafv2/cloudfront/${local.customer_workload_name}"
+  count = var.create_cloudfront_distributions ? 1 : 0
+
+  name              = "aws-waf-logs-cloudfront-${replace(local.customer_workload_name, ".", "-")}"
   retention_in_days = 30
 
   tags = merge(local.common_tags, {
-    Name    = "${local.customer_workload_name}-waf-cloudfront-logs"
+    Name    = "${replace(local.customer_workload_name, ".", "-")}-waf-cloudfront-logs"
     Purpose = "waf-cloudfront-logging"
   })
 }
 
 # WAF logging configuration
 resource "aws_wafv2_web_acl_logging_configuration" "cloudfront" {
-  resource_arn            = aws_wafv2_web_acl.cloudfront.arn
-  log_destination_configs = [aws_cloudwatch_log_group.waf_cloudfront.arn]
+  count = var.create_cloudfront_distributions ? 1 : 0
+
+  resource_arn            = aws_wafv2_web_acl.cloudfront[0].arn
+  log_destination_configs = [aws_cloudwatch_log_group.waf_cloudfront[0].arn]
 
   # Redact sensitive fields from logs
   redacted_fields {
@@ -205,6 +211,8 @@ resource "aws_wafv2_web_acl_logging_configuration" "cloudfront" {
 
 # IP set for trusted IPs (can be used for admin access)
 resource "aws_wafv2_ip_set" "trusted_ips" {
+  count = var.create_cloudfront_distributions ? 1 : 0
+
   name  = "${replace(local.customer_workload_name, ".", "-")}-trusted-ips"
   scope = "CLOUDFRONT"
 

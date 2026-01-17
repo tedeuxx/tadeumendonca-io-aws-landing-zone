@@ -8,8 +8,8 @@ customer_workload_environment = "main"
 # Workload environments to deploy
 workload_environments = ["staging", "production"]
 
-# CloudFront configuration - enabled for production use
-create_cloudfront_distributions = true
+# CloudFront configuration - temporarily disabled pending AWS account verification
+create_cloudfront_distributions = false
 
 # Applications configuration with subdomain patterns
 applications = {

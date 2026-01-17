@@ -84,7 +84,7 @@ module "cloudfront" {
   }
 
   # WAF Web ACL association
-  web_acl_id = aws_wafv2_web_acl.cloudfront.arn
+  web_acl_id = var.create_cloudfront_distributions ? aws_wafv2_web_acl.cloudfront[0].arn : null
 
   tags = merge(local.common_tags, {
     Name        = each.value.fqdn

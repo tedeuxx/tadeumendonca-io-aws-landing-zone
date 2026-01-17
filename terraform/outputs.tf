@@ -275,15 +275,15 @@ output "acm_certificate_arn" {
 ############################
 output "waf_web_acl_id" {
   description = "WAF Web ACL ID for CloudFront protection"
-  value       = aws_wafv2_web_acl.cloudfront.id
+  value       = var.create_cloudfront_distributions ? aws_wafv2_web_acl.cloudfront[0].id : null
 }
 
 output "waf_web_acl_arn" {
   description = "WAF Web ACL ARN for CloudFront protection"
-  value       = aws_wafv2_web_acl.cloudfront.arn
+  value       = var.create_cloudfront_distributions ? aws_wafv2_web_acl.cloudfront[0].arn : null
 }
 
 output "waf_cloudwatch_log_group" {
   description = "CloudWatch log group for WAF logs"
-  value       = aws_cloudwatch_log_group.waf_cloudfront.name
+  value       = var.create_cloudfront_distributions ? aws_cloudwatch_log_group.waf_cloudfront[0].name : null
 }

@@ -212,22 +212,43 @@ Configure AWS Certificate Manager for SSL certificates and integrate with existi
 
 ---
 
-### Task 6: Frontend Hosting and API Gateway
+### Task 6: Frontend Hosting and CloudFront
 **Priority**: High  
-**Estimated Effort**: 6 hours  
+**Estimated Effort**: 4 hours  
 **Dependencies**: Task 2, Task 3
 
 #### Description
-Deploy CloudFront distributions with private S3 buckets using Origin Access Control (OAC) for frontend hosting, and API Gateway with VPC Link for backend API access to private EKS services.
+Deploy CloudFront distributions with private S3 buckets using Origin Access Control (OAC) for frontend hosting, and AWS WAF v2 protection for web application security.
 
 #### Acceptance Criteria
-1. Private S3 buckets for frontend static assets per workload environment
-2. CloudFront distributions with OAC for secure S3 access per workload environment
-3. API Gateway (HTTP API) instances per workload environment
-4. VPC Link connecting API Gateway to private EKS services
-5. AWS WAF v2 protection for both CloudFront and API Gateway
-6. Custom error pages for SPA routing support
-7. Proper caching strategies for static assets and API calls
+1. ✅ Private S3 buckets for frontend static assets per workload environment
+2. ✅ CloudFront distributions with OAC for secure S3 access per workload environment
+3. ✅ AWS WAF v2 protection for CloudFront distributions
+4. ✅ Custom error pages for SPA routing support
+5. ✅ Proper caching strategies for static assets
+6. ✅ Route53 DNS records for custom domains
+
+#### Implementation Steps
+1. ✅ Enable CloudFront distributions in configuration
+2. ✅ Create AWS WAF v2 Web ACL with security rules
+3. ✅ Associate WAF with CloudFront distributions
+4. ✅ Configure CloudWatch logging for WAF events
+5. ✅ Set up Route53 DNS records
+
+#### Validation
+- ✅ CloudFront distributions created and operational
+- ✅ WAF blocking malicious requests
+- ✅ Custom domains resolving correctly
+- ✅ SPA routing works with custom error pages
+- ✅ CloudWatch logs and metrics available
+
+#### Files Modified
+- ✅ `terraform/env/main.tfvars` - Enabled CloudFront
+- ✅ `terraform/waf.tf` - WAF Web ACL and security rules
+- ✅ `terraform/cloudfront.tf` - WAF integration
+- ✅ `terraform/outputs.tf` - WAF outputs
+
+**Status**: ✅ **COMPLETED**
 
 #### Implementation Steps
 1. Create private S3 buckets for frontend assets per environment
@@ -253,45 +274,53 @@ Deploy CloudFront distributions with private S3 buckets using Origin Access Cont
 
 ---
 
-### Task 7: Shared EKS Cluster Foundation
+### Task 7: Shared EKS Cluster Foundation with API Gateway
 **Priority**: Critical  
-**Estimated Effort**: 8 hours  
-**Dependencies**: Task 2, Task 3
+**Estimated Effort**: 10 hours  
+**Dependencies**: Task 2, Task 3, Task 6
 
 #### Description
-Deploy a shared EKS cluster for both staging and production workloads using terraform-aws-modules/eks with Fargate-only configuration, namespace isolation, and VPC Link integration for API Gateway access.
+Deploy a shared EKS cluster for both staging and production workloads using terraform-aws-modules/eks with Fargate-only configuration, namespace isolation, and API Gateway with VPC Link integration for external API access.
 
 #### Acceptance Criteria
 1. Single shared EKS cluster (v1.28) with Fargate profiles for both environments
 2. Namespace isolation for staging and production workloads
 3. Fargate profiles for system and application namespaces
-4. VPC Link for API Gateway integration instead of AWS Load Balancer Controller
-5. EBS CSI driver for persistent storage
-6. Proper RBAC configuration for service accounts and namespace isolation
-7. CloudWatch logging enabled for control plane
-8. Private cluster endpoints accessible only from within VPC
+4. API Gateway (HTTP API) instances per workload environment
+5. VPC Link connecting API Gateway to private EKS services
+6. AWS WAF v2 protection for API Gateway endpoints
+7. EBS CSI driver for persistent storage
+8. Proper RBAC configuration for service accounts and namespace isolation
+9. CloudWatch logging enabled for control plane and API Gateway
+10. Private cluster endpoints accessible only from within VPC
 
 #### Implementation Steps
 1. Create shared EKS cluster using terraform-aws-modules/eks/aws
 2. Configure Fargate profiles for staging and production namespaces
-3. Set up VPC Link for API Gateway integration
-4. Set up EBS CSI driver for storage
-5. Configure RBAC for service accounts and namespace isolation
-6. Enable CloudWatch logging for audit and API server logs
-7. Configure private cluster endpoint access
+3. Set up API Gateway HTTP APIs for each environment
+4. Create VPC Link for API Gateway to EKS integration
+5. Configure AWS WAF v2 for API Gateway protection
+6. Set up EBS CSI driver for storage
+7. Configure RBAC for service accounts and namespace isolation
+8. Enable CloudWatch logging for audit and API server logs
+9. Configure private cluster endpoint access
+10. Set up health check endpoints and monitoring
 
 #### Validation
 - [ ] EKS cluster accessible via kubectl
 - [ ] Fargate profiles created for both staging and production namespaces
-- [ ] VPC Link functional for API Gateway integration
+- [ ] API Gateway endpoints responding to health checks
+- [ ] VPC Link functional for API Gateway to EKS integration
+- [ ] WAF protecting API Gateway from malicious requests
 - [ ] EBS CSI driver functional
-- [ ] CloudWatch logs being collected
+- [ ] CloudWatch logs being collected from both EKS and API Gateway
 - [ ] RBAC permissions working correctly with namespace isolation
 - [ ] Cluster endpoint is private and accessible only from VPC
 
 #### Files Modified
 - `terraform/eks.tf`
-- `terraform/vpc-link.tf`
+- `terraform/api-gateway.tf`
+- `terraform/waf-api.tf`
 - `terraform/outputs.tf`
 
 ---
