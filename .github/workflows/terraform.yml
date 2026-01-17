@@ -101,14 +101,12 @@ jobs:
         run: |
           echo "🔄 Running terraform plan for staging environment..."
           
-          # Run terraform plan with staging workload
+          # Run terraform plan with staging workload - show output in real-time and capture to file
+          set -o pipefail
           terraform plan -out=tfplan-staging.out -compact-warnings \
             -var-file=./env/main.tfvars \
-            -var='workload_environments=["staging"]' > plan_output.log 2>&1
+            -var='workload_environments=["staging"]' 2>&1 | tee plan_output.log
           PLAN_EXIT_CODE=$?
-          
-          echo "📋 Terraform plan output:"
-          cat plan_output.log
           
           if [ $PLAN_EXIT_CODE -eq 0 ]; then
             echo "✅ Terraform plan succeeded"
@@ -276,14 +274,12 @@ jobs:
             echo "📋 Deploying staging + production"
           fi
           
-          # Run terraform plan with production workload
+          # Run terraform plan with production workload - show output in real-time and capture to file
+          set -o pipefail
           terraform plan -out=tfplan-production.out -compact-warnings \
             -var-file=./env/main.tfvars \
-            -var="workload_environments=$WORKLOAD_ENVS" > plan_output.log 2>&1
+            -var="workload_environments=$WORKLOAD_ENVS" 2>&1 | tee plan_output.log
           PLAN_EXIT_CODE=$?
-          
-          echo "📋 Terraform plan output:"
-          cat plan_output.log
           
           if [ $PLAN_EXIT_CODE -eq 0 ]; then
             echo "✅ Terraform plan succeeded"
