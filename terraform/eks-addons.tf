@@ -57,10 +57,10 @@ module "eks_blueprints_addons" {
     ]
   }
 
-  # EBS CSI Driver for persistent storage
-  enable_aws_ebs_csi_driver = true
-  aws_ebs_csi_driver = {
-    chart_version = "2.35.1"
+  # EFS CSI Driver for persistent storage (EBS not supported on Fargate)
+  enable_aws_efs_csi_driver = true
+  aws_efs_csi_driver = {
+    chart_version = "3.1.1"
 
     values = [
       yamlencode({

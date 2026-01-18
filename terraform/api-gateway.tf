@@ -242,22 +242,7 @@ resource "aws_api_gateway_stage" "main" {
   rest_api_id   = aws_api_gateway_rest_api.main[each.value].id
   stage_name    = each.value
 
-  # Enable logging
-  access_log_destination_arn = aws_cloudwatch_log_group.api_gateway[each.value].arn
-  access_log_format = jsonencode({
-    requestId      = "$context.requestId"
-    ip             = "$context.identity.sourceIp"
-    caller         = "$context.identity.caller"
-    user           = "$context.identity.user"
-    requestTime    = "$context.requestTime"
-    httpMethod     = "$context.httpMethod"
-    resourcePath   = "$context.resourcePath"
-    status         = "$context.status"
-    protocol       = "$context.protocol"
-    responseLength = "$context.responseLength"
-    error          = "$context.error.message"
-    errorType      = "$context.error.messageString"
-  })
+  # TODO: Configure access logging separately using aws_api_gateway_method_settings
 
   # Enable X-Ray tracing
   xray_tracing_enabled = true
