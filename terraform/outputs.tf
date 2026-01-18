@@ -287,3 +287,187 @@ output "waf_cloudwatch_log_group" {
   description = "CloudWatch log group for WAF logs"
   value       = var.create_cloudfront_distributions ? aws_cloudwatch_log_group.waf_cloudfront[0].name : null
 }
+
+############################
+# EKS CLUSTERS
+############################
+output "eks_cluster_ids" {
+  description = "EKS cluster IDs by environment"
+  value = {
+    for env in var.workload_environments :
+    env => module.eks[env].cluster_id
+  }
+}
+
+output "eks_cluster_arns" {
+  description = "EKS cluster ARNs by environment"
+  value = {
+    for env in var.workload_environments :
+    env => module.eks[env].cluster_arn
+  }
+}
+
+output "eks_cluster_endpoints" {
+  description = "EKS cluster endpoints by environment"
+  value = {
+    for env in var.workload_environments :
+    env => module.eks[env].cluster_endpoint
+  }
+  sensitive = true
+}
+
+output "eks_cluster_versions" {
+  description = "EKS cluster Kubernetes versions by environment"
+  value = {
+    for env in var.workload_environments :
+    env => module.eks[env].cluster_version
+  }
+}
+
+output "eks_cluster_security_group_ids" {
+  description = "EKS cluster security group IDs by environment"
+  value = {
+    for env in var.workload_environments :
+    env => module.eks[env].cluster_security_group_id
+  }
+}
+
+output "eks_oidc_provider_arns" {
+  description = "EKS OIDC provider ARNs by environment"
+  value = {
+    for env in var.workload_environments :
+    env => module.eks[env].oidc_provider_arn
+  }
+}
+
+output "eks_fargate_profile_arns" {
+  description = "EKS Fargate profile ARNs by environment"
+  value = {
+    for env in var.workload_environments :
+    env => module.eks[env].fargate_profiles
+  }
+}
+
+############################
+# API GATEWAY
+############################
+output "api_gateway_rest_api_ids" {
+  description = "API Gateway REST API IDs by environment"
+  value = {
+    for env in var.workload_environments :
+    env => aws_api_gateway_rest_api.main[env].id
+  }
+}
+
+output "api_gateway_rest_api_root_resource_ids" {
+  description = "API Gateway REST API root resource IDs by environment"
+  value = {
+    for env in var.workload_environments :
+    env => aws_api_gateway_rest_api.main[env].root_resource_id
+  }
+}
+
+output "api_gateway_stage_arns" {
+  description = "API Gateway stage ARNs by environment"
+  value = {
+    for env in var.workload_environments :
+    env => aws_api_gateway_stage.main[env].arn
+  }
+}
+
+output "api_gateway_invoke_urls" {
+  description = "API Gateway invoke URLs by environment"
+  value = {
+    for env in var.workload_environments :
+    env => aws_api_gateway_stage.main[env].invoke_url
+  }
+}
+
+output "api_gateway_custom_domain_names" {
+  description = "API Gateway custom domain names by environment"
+  value = {
+    for env in var.workload_environments :
+    env => aws_api_gateway_domain_name.main[env].domain_name
+  }
+}
+
+output "api_domain_names" {
+  description = "API domain names by environment"
+  value       = local.api_domain_names
+}
+
+############################
+# VPC LINKS
+############################
+output "vpc_link_ids" {
+  description = "VPC Link IDs by environment"
+  value = {
+    for env in var.workload_environments :
+    env => aws_api_gateway_vpc_link.main[env].id
+  }
+}
+
+output "vpc_link_names" {
+  description = "VPC Link names by environment"
+  value = {
+    for env in var.workload_environments :
+    env => aws_api_gateway_vpc_link.main[env].name
+  }
+}
+
+############################
+# WAF API GATEWAY
+############################
+output "waf_api_gateway_web_acl_ids" {
+  description = "WAF Web ACL IDs for API Gateway protection by environment"
+  value = {
+    for env in var.workload_environments :
+    env => aws_wafv2_web_acl.api_gateway[env].id
+  }
+}
+
+output "waf_api_gateway_web_acl_arns" {
+  description = "WAF Web ACL ARNs for API Gateway protection by environment"
+  value = {
+    for env in var.workload_environments :
+    env => aws_wafv2_web_acl.api_gateway[env].arn
+  }
+}
+
+output "waf_api_gateway_cloudwatch_log_groups" {
+  description = "CloudWatch log groups for WAF API Gateway logs by environment"
+  value = {
+    for env in var.workload_environments :
+    env => aws_cloudwatch_log_group.waf_api_gateway[env].name
+  }
+}
+
+############################
+# KUBERNETES NAMESPACES
+############################
+output "kubernetes_namespaces" {
+  description = "Kubernetes namespace names by environment"
+  value = {
+    for env in var.workload_environments :
+    env => kubernetes_namespace.application[env].metadata[0].name
+  }
+}
+
+############################
+# CLOUDWATCH LOG GROUPS
+############################
+output "eks_fargate_log_groups" {
+  description = "CloudWatch log groups for EKS Fargate logs by environment"
+  value = {
+    for env in var.workload_environments :
+    env => aws_cloudwatch_log_group.fargate[env].name
+  }
+}
+
+output "api_gateway_log_groups" {
+  description = "CloudWatch log groups for API Gateway logs by environment"
+  value = {
+    for env in var.workload_environments :
+    env => aws_cloudwatch_log_group.api_gateway[env].name
+  }
+}

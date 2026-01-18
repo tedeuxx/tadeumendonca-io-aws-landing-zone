@@ -20,3 +20,44 @@ provider "aws" {
   # Use profile only for local development, CI uses environment variables
   profile = var.aws_profile != "" ? var.aws_profile : null
 }
+
+# Kubernetes provider configuration
+# Note: This uses a data source approach to avoid circular dependencies
+provider "kubernetes" {
+  host                   = try(module.eks[var.workload_environments[0]].cluster_endpoint, "")
+  cluster_ca_certificate = try(base64decode(module.eks[var.workload_environments[0]].cluster_certificate_authority_data), "")
+
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    command     = "aws"
+    args = [
+      "eks",
+      "get-token",
+      "--cluster-name",
+      try(module.eks[var.workload_environments[0]].cluster_name, ""),
+      "--region",
+      var.aws_region,
+    ]
+  }
+}
+
+# Helm provider configuration
+provider "helm" {
+  kubernetes {
+    host                   = try(module.eks[var.workload_environments[0]].cluster_endpoint, "")
+    cluster_ca_certificate = try(base64decode(module.eks[var.workload_environments[0]].cluster_certificate_authority_data), "")
+
+    exec {
+      api_version = "client.authentication.k8s.io/v1beta1"
+      command     = "aws"
+      args = [
+        "eks",
+        "get-token",
+        "--cluster-name",
+        try(module.eks[var.workload_environments[0]].cluster_name, ""),
+        "--region",
+        var.aws_region,
+      ]
+    }
+  }
+}

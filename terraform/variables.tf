@@ -117,3 +117,72 @@ variable "create_cloudfront_distributions" {
   default     = false
 }
 
+############################
+# EKS Configuration
+############################
+variable "eks_cluster_version" {
+  description = "Kubernetes version for EKS clusters"
+  type        = string
+  default     = "1.30"
+}
+
+variable "enable_eks_cluster_logging" {
+  description = "Enable EKS cluster logging"
+  type        = bool
+  default     = true
+}
+
+variable "eks_cluster_log_types" {
+  description = "List of EKS cluster log types to enable"
+  type        = list(string)
+  default     = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
+}
+
+############################
+# API Gateway Configuration
+############################
+variable "api_gateway_throttle_rate_limit" {
+  description = "API Gateway throttle rate limit (requests per second)"
+  type        = number
+  default     = 1000
+}
+
+variable "api_gateway_throttle_burst_limit" {
+  description = "API Gateway throttle burst limit"
+  type        = number
+  default     = 2000
+}
+
+variable "enable_api_gateway_logging" {
+  description = "Enable API Gateway access logging"
+  type        = bool
+  default     = true
+}
+
+variable "enable_api_gateway_xray_tracing" {
+  description = "Enable X-Ray tracing for API Gateway"
+  type        = bool
+  default     = true
+}
+
+############################
+# WAF Configuration
+############################
+variable "waf_rate_limit" {
+  description = "WAF rate limit for API Gateway (requests per 5 minutes per IP)"
+  type        = number
+  default     = 1000
+}
+
+variable "waf_blocked_countries" {
+  description = "List of country codes to block in WAF"
+  type        = list(string)
+  default     = ["CN", "RU", "KP", "IR"]
+}
+
+variable "enable_waf_logging" {
+  description = "Enable WAF logging to CloudWatch"
+  type        = bool
+  default     = true
+}
+

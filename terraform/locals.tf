@@ -27,6 +27,18 @@ locals {
     }
   }
 
+  # API domain names per environment
+  api_domain_names = {
+    for env in var.workload_environments :
+    env => env == "production" ? "api.${var.root_domain_name}" : "api-${env}.${var.root_domain_name}"
+  }
+
+  # EKS cluster names per environment
+  eks_cluster_names = {
+    for env in var.workload_environments :
+    env => "${replace(local.customer_workload_name, ".", "-")}-${env}"
+  }
+
   # ELB service account IDs by region for ALB access logs
   # Reference: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/enable-access-logging.html
   elb_service_account_id = {

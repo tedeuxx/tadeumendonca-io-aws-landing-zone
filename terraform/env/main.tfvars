@@ -19,6 +19,22 @@ applications = {
   }
 }
 
+# EKS Configuration
+eks_cluster_version = "1.30"
+enable_eks_cluster_logging = true
+eks_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
+
+# API Gateway Configuration
+api_gateway_throttle_rate_limit = 1000
+api_gateway_throttle_burst_limit = 2000
+enable_api_gateway_logging = true
+enable_api_gateway_xray_tracing = true
+
+# WAF Configuration
+waf_rate_limit = 1000
+waf_blocked_countries = ["CN", "RU", "KP", "IR"]
+enable_waf_logging = true
+
 # DocumentDB configuration for all environments
 documentdb_config = {
   staging = {
