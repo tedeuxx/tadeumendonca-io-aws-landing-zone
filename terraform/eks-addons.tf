@@ -198,23 +198,23 @@ resource "kubernetes_service_account" "aws_load_balancer_controller" {
     namespace = "kube-system"
 
     annotations = {
-      "eks.amazonaws.com/role-arn" = module.eks_blueprints_addons[each.value].aws_load_balancer_controller.service_account_role_arn
+      "eks.amazonaws.com/role-arn" = module.eks_blueprints_addons[each.value].aws_load_balancer_controller.iam_role_arn
     }
   }
 
   depends_on = [module.eks_blueprints_addons]
 }
 
-# Service account for EBS CSI Driver
-resource "kubernetes_service_account" "ebs_csi_controller" {
+# Service account for EFS CSI Driver
+resource "kubernetes_service_account" "efs_csi_controller" {
   for_each = toset(var.workload_environments)
 
   metadata {
-    name      = "ebs-csi-controller-sa"
+    name      = "efs-csi-controller-sa"
     namespace = "kube-system"
 
     annotations = {
-      "eks.amazonaws.com/role-arn" = module.eks_blueprints_addons[each.value].aws_ebs_csi_driver.service_account_role_arn
+      "eks.amazonaws.com/role-arn" = module.eks_blueprints_addons[each.value].aws_efs_csi_driver.iam_role_arn
     }
   }
 
